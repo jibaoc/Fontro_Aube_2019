@@ -375,7 +375,7 @@ def create_an_up_vs_down_comparison(nt_exons_up, nt_exons_down, output):
 
     ax.text(0.9, 0.9, my_text, ha='center', va='center', transform=ax.transAxes)
 
-    plt.title(u"Comparaison des proportions en nucléotides entre les exons up et down")
+    plt.title(u"Comparaison des proportions en nucléotides entre les ORF des exons up et down")
     plt.xlabel(u"Nucléotides / Groupes de nucléotides")
     plt.ylabel(u"Fréquences dans les exons")
     plt.savefig(output + "boxplot_nt_proportion_figure.pdf", bbox_inches='tight')
