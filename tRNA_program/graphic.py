@@ -220,9 +220,6 @@ def create_a_graphic_up_vs_down(prop_dic_up, prop_dic_down, type_unit, output, n
     max_o = 0
     max_a = 0
     for key in prop_dic_up.keys():
-        if key == "E":
-            print "dic E up  = " + str(prop_dic_up[key])
-            print "dic E down  = " + str(prop_dic_down[key])
         if prop_dic_up[key] > max_o:
             max_o = prop_dic_up[key]
         if prop_dic_down[key] > max_a:
@@ -273,6 +270,82 @@ def create_a_graphic_up_vs_down(prop_dic_up, prop_dic_down, type_unit, output, n
 
     plt.savefig(output + str(type_unit) + "_figure_up_vs_down.pdf", bbox_inches='tight')
     plt.savefig(output + str(type_unit) + "_figure_up_vs_down.png", bbox_inches='tight')
+
+    plt.clf()
+    plt.cla()
+
+
+def graphic_up_vs_down_stat(prop_dic_up, prop_dic_down, type_unit, dic_p_value, dic_p_value_corrected, output, name):
+    """
+    :param prop_dic_up: (dictionary) the proportion of all codon/amino acid in the interest set of exons up
+    :param prop_dic_down: (dictionary) the proportion of all codon/amino acid in the interest set of exons down
+    :param type_unit: (string) codons or acides amines
+    :param output: (string), the path were the graphic will be created
+    :param name: (string), the named of the set of exon used
+    """
+    name = name.strip()
+    abscissa = list()
+    ordinate = list()
+    abscissa_red = list()
+    ordinate_red = list()
+    abscissa_pink = list()
+    ordinate_pink = list()
+    fig, ax = plt.subplots(figsize=(cm2inch(48), cm2inch(27)))
+    max_o = 0
+    max_a = 0
+    for key in prop_dic_up.keys():
+        cur_mean = np.mean(prop_dic_up[key])
+        if cur_mean > max_o:
+            max_o = cur_mean
+        cur_mean = np.mean(prop_dic_down[key])
+        if cur_mean > max_a:
+            max_a = cur_mean
+    if type_unit == "codons":
+        val = max_a / 75
+    else:
+        val = 0
+    if max_o > max_a:
+        ax.set(xlim=(0, max_o + 0.002), ylim=(0, max_o + 0.002))
+    else:
+        ax.set(xlim=(0, max_a + 0.002), ylim=(0, max_a + 0.002))
+    for key in prop_dic_up.keys():
+        cur_mean_up = np.mean(prop_dic_up[key])
+        cur_mean_down = np.mean(prop_dic_down[key])
+        if type_unit == "codons":
+            ax.annotate(key + "$^{" + codon2aminoAcid[key] + codon2rareness[key] + "}$",
+                        xy=(cur_mean_down, cur_mean_up),
+                        xytext=(cur_mean_down - val, cur_mean_up + max_o / 65))
+        else:
+            ax.annotate(key, xy=(cur_mean_down, cur_mean_up),
+                        xytext=(cur_mean_down - val, cur_mean_up + max_o / 65))
+
+        if dic_p_value[key] <= 0.05:
+            abscissa_red.append(cur_mean_down)
+            ordinate_red.append(cur_mean_up)
+        elif dic_p_value_corrected[key] <= 0.05:
+            abscissa_pink.append(cur_mean_down)
+            ordinate_pink.append(cur_mean_up)
+        else:
+            abscissa.append(cur_mean_down)
+            ordinate.append(cur_mean_up)
+
+    ax.plot(abscissa_red, ordinate_red, 'ro', label="fdr<=0.05")
+    ax.plot(abscissa_pink, ordinate_pink, color="pink", marker="o", linewidth=0, label="p<=0.05")
+    ax.plot(abscissa, ordinate, 'ko', label="non significatifs")
+    ax.plot(ax.get_xlim(), ax.get_ylim(), color="red")
+
+    xlabel = u"Fréquences en " + unicode(type_unit) + u" dans les exons down " + unicode(name)
+    ylabel = u"Fréquences en " + unicode(type_unit) + u" dans les exons up " + unicode(name)
+    title = u"Fréquences en " + unicode(type_unit) + u" dans les exons up en fonction des fréquences en " + \
+            unicode(type_unit) + u" dans tous exons down"
+
+    ax.legend(loc="upper left", shadow=True, numpoints=1)
+    plt.xlabel(xlabel.replace("  ", " "))
+    plt.title(title.replace("  ", " "))
+    plt.ylabel(ylabel.replace("  ", " "))
+
+    plt.savefig(output + str(type_unit) + "_figure_up_vs_down_stat.pdf", bbox_inches='tight')
+    plt.savefig(output + str(type_unit) + "_figure_up_vs_down_stat.png", bbox_inches='tight')
 
     plt.clf()
     plt.cla()
