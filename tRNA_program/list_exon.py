@@ -381,6 +381,35 @@ class ListExon:
         return dic_freq_exon
 
     ##################################################################################################################
+    #                                              Up_and_down graphic with stats
+    ##################################################################################################################
+
+    def codon_frequency_per_exon(self):
+        """
+        frequency for each codon per exons
+        """
+        dic_freq_exon = {}
+        for key in codon2aminoAcid.keys():
+            dic_freq_exon[key] = list()
+            for i in range(len(self.exon_list)):
+                if len(self.exon_list[i].codon) > 1:
+                    dic_freq_exon[key].append(float(self.exon_list[i].codon.count(key)) / len(self.exon_list[i].codon))
+        return dic_freq_exon
+
+    def amino_acid_frequency_calculator(self):
+        """
+        frequency for each amino acid per exons
+        """
+        dic_freq_exon = {}
+        for key in amino_acid2nature.keys():
+            dic_freq_exon[key] = list()
+            for i in range(len(self.exon_list)):
+                if len(self.exon_list[i].amino_acid) > 0:
+                    dic_freq_exon[key].append(
+                        float(self.exon_list[i].amino_acid.count(key)) / len(self.exon_list[i].amino_acid))
+        return dic_freq_exon
+
+    ##################################################################################################################
     #                                                   RECAP_GRAPH_FUNCTION
     ##################################################################################################################
     # The methods of this section consists of making boxplot and barplot for every codon and amino acid of the user
