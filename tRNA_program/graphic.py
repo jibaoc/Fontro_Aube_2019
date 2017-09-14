@@ -280,6 +280,10 @@ def graphic_up_vs_down_stat(prop_dic_up, prop_dic_down, type_unit, dic_p_value, 
     :param prop_dic_up: (dictionary) the proportion of all codon/amino acid in the interest set of exons up
     :param prop_dic_down: (dictionary) the proportion of all codon/amino acid in the interest set of exons down
     :param type_unit: (string) codons or acides amines
+    :param dic_p_value: (dictionary of float) dictionary of p-value for each features (key of the dictionary) - feature
+    can be codon or amino acids
+    :param dic_p_value: (dictionary of float) dictionary of corrected p-value for each features (key of the dictionary)
+    - feature can be codon or amino acids
     :param output: (string), the path were the graphic will be created
     :param name: (string), the named of the set of exon used
     """
