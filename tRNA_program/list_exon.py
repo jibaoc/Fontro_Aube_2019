@@ -396,7 +396,7 @@ class ListExon:
                     dic_freq_exon[key].append(float(self.exon_list[i].codon.count(key)) / len(self.exon_list[i].codon))
         return dic_freq_exon
 
-    def amino_acid_frequency_calculator(self):
+    def amino_acid_frequency_per_exon(self):
         """
         frequency for each amino acid per exons
         """
