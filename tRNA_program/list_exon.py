@@ -392,7 +392,7 @@ class ListExon:
         for key in codon2aminoAcid.keys():
             dic_freq_exon[key] = list()
             for i in range(len(self.exon_list)):
-                if len(self.exon_list[i].codon) > 1:
+                if len(self.exon_list[i].codon) > 9:
                     dic_freq_exon[key].append(float(self.exon_list[i].codon.count(key)) / len(self.exon_list[i].codon))
         return dic_freq_exon
 
@@ -404,7 +404,7 @@ class ListExon:
         for key in amino_acid2nature.keys():
             dic_freq_exon[key] = list()
             for i in range(len(self.exon_list)):
-                if len(self.exon_list[i].amino_acid) > 0:
+                if len(self.exon_list[i].amino_acid) > 9:
                     dic_freq_exon[key].append(
                         float(self.exon_list[i].amino_acid.count(key)) / len(self.exon_list[i].amino_acid))
         return dic_freq_exon
