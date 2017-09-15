@@ -294,6 +294,8 @@ def graphic_up_vs_down_stat(prop_dic_up, prop_dic_down, type_unit, dic_p_value, 
     ordinate_red = list()
     abscissa_pink = list()
     ordinate_pink = list()
+    abscissa_yellow = list()
+    ordinate_yellow = list()
     fig, ax = plt.subplots(figsize=(cm2inch(48), cm2inch(27)))
     max_o = 0
     max_a = 0
@@ -322,19 +324,27 @@ def graphic_up_vs_down_stat(prop_dic_up, prop_dic_down, type_unit, dic_p_value, 
         else:
             ax.annotate(key, xy=(cur_mean_down, cur_mean_up),
                         xytext=(cur_mean_down - val, cur_mean_up + max_o / 65))
-
-        if dic_p_value[key] <= 0.05:
+        print key
+        print dic_p_value_corrected[key]
+        print dic_p_value[key]
+        if dic_p_value_corrected[key] <= 0.05:
+            print "red"
             abscissa_red.append(cur_mean_down)
             ordinate_red.append(cur_mean_up)
-        elif dic_p_value_corrected[key] <= 0.05:
+        elif dic_p_value[key] <= 0.05:
+            print "pink"
             abscissa_pink.append(cur_mean_down)
             ordinate_pink.append(cur_mean_up)
+        elif dic_p_value[key] == "NaN":
+            print "yellow"
+            abscissa_yellow.append(cur_mean_down)
+            ordinate_yellow.append(cur_mean_up)
         else:
             abscissa.append(cur_mean_down)
             ordinate.append(cur_mean_up)
-
     ax.plot(abscissa_red, ordinate_red, 'ro', label="fdr<=0.05")
     ax.plot(abscissa_pink, ordinate_pink, color="pink", marker="o", linewidth=0, label="p<=0.05")
+    ax.plot(abscissa_yellow, ordinate_yellow, color="yellow", marker="o", linewidth=0, label="NaN")
     ax.plot(abscissa, ordinate, 'ko', label="non significatifs")
     ax.plot(ax.get_xlim(), ax.get_ylim(), color="red")
 
