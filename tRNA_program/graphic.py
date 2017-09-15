@@ -324,19 +324,13 @@ def graphic_up_vs_down_stat(prop_dic_up, prop_dic_down, type_unit, dic_p_value, 
         else:
             ax.annotate(key, xy=(cur_mean_down, cur_mean_up),
                         xytext=(cur_mean_down - val, cur_mean_up + max_o / 65))
-        print key
-        print dic_p_value_corrected[key]
-        print dic_p_value[key]
         if dic_p_value_corrected[key] <= 0.05:
-            print "red"
             abscissa_red.append(cur_mean_down)
             ordinate_red.append(cur_mean_up)
         elif dic_p_value[key] <= 0.05:
-            print "pink"
             abscissa_pink.append(cur_mean_down)
             ordinate_pink.append(cur_mean_up)
         elif dic_p_value[key] == "NaN":
-            print "yellow"
             abscissa_yellow.append(cur_mean_down)
             ordinate_yellow.append(cur_mean_up)
         else:
