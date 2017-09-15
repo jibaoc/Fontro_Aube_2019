@@ -36,3 +36,29 @@ fit1 = gamlss(feature_all ~ 1, family=BEINF0, data=dataf)
 fit2 = gamlss( feature_all ~ feature_group, sigma.formula=~feature_group, nu.formula = ~feature_group, family=BEINF0, data=dataf)
 
 cat(LR.test(fit1, fit2))
+
+
+nu_up = as.numeric(fitted(fit2,"nu")[1])
+mu_up = as.numeric(fitted(fit2,"mu")[1])
+sigma_up = as.numeric(fitted(fit2,"sigma")[1])
+
+
+nu_down = as.numeric(fitted(fit2,"nu")[length(fitted(fit2,"nu"))])
+mu_down = as.numeric(fitted(fit2,"mu")[length(fitted(fit2,"mu"))])
+sigma_down = as.numeric(fitted(fit2,"sigma")[length(fitted(fit2,"sigma"))])
+
+
+
+
+cat("sigma_up=")
+cat(sigma_up)
+cat("\nmu_up=")
+cat(mu_up)
+cat("\nnu_up=")
+cat(nu_up)
+cat("\nsigma_down=")
+cat(sigma_down)
+cat("\nmu_down=")
+cat(mu_down)
+cat("\nnu_down=")
+cat(nu_down)
