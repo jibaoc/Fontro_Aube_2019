@@ -724,14 +724,17 @@ def boxplot_nucleotide_rich_or_poor_codon(output, up_dict, down_dict, up_down_di
     size_font = 20
     fig, ax = plt.subplots(figsize=(48. / 2.54, 27 / 2.54))
     # loading the variable we need to complete the graphics
-    sys.path.insert(0, "/home/nicolas/PycharmProjects/projet_et_stat_et_graph3/nucleotides_riche_codon_ACE_CCE/")
+    sys.path.insert(0, "/home/nicolas/PycharmProjects/projet_et_stat_et_graph5/nucleotides_riche_codon_ACE_CCE/")
     if rich == "rich":
+        A='A'; C='C'; G='G'; T='T'
         from ACE_rich import dic_ACE
         from CCE_rich import dic_CCE
     elif rich == "poor":
+        A = 'B'; C = 'D'; G = 'H'; T = 'V'
         from ACE_poor import dic_ACE
         from CCE_poor import dic_CCE
     else:
+        A = 'A'; C = 'C'; G = 'G'; T = 'T'
         from ACE_last_nt import dic_ACE
         from CCE_last_nt import dic_CCE
 
@@ -739,17 +742,17 @@ def boxplot_nucleotide_rich_or_poor_codon(output, up_dict, down_dict, up_down_di
         labels = ["up", "down", "up\nand\ndown", "ACE", "CCE"] * 4
         pos = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23]
         ax.set_xticks(pos)
-        box = ax.boxplot([up_dict['A'], down_dict['A'], up_down_dict['A'], dic_ACE['A'], dic_CCE['A'],
-                         up_dict['C'], down_dict['C'], up_down_dict['C'], dic_ACE['C'], dic_CCE['C'],
-                         up_dict['G'], down_dict['G'], up_down_dict['G'], dic_ACE['G'], dic_CCE['G'],
-                          up_dict['T'], down_dict['T'], up_down_dict['T'], dic_ACE['T'], dic_CCE['T']],
+        box = ax.boxplot([up_dict[A], down_dict[A], up_down_dict[A], dic_ACE[A], dic_CCE[A],
+                         up_dict[C], down_dict[C], up_down_dict[C], dic_ACE[C], dic_CCE[C],
+                         up_dict[G], down_dict[G], up_down_dict[G], dic_ACE[G], dic_CCE[G],
+                          up_dict[T], down_dict[T], up_down_dict[T], dic_ACE[T], dic_CCE[T]],
                          positions=pos, labels=labels, showmeans=True, notch=False, patch_artist=True)
         for i in range(len(box['boxes'])):
             box['boxes'][i].set_facecolor(set_color(i, 5))
-        violin = ax.violinplot([up_dict['A'], down_dict['A'], up_down_dict['A'], dic_ACE['A'], dic_CCE['A'],
-                                up_dict['C'], down_dict['C'], up_down_dict['C'], dic_ACE['C'], dic_CCE['C'],
-                                up_dict['G'], down_dict['G'], up_down_dict['G'], dic_ACE['G'], dic_CCE['G'],
-                                up_dict['T'], down_dict['T'], up_down_dict['T'], dic_ACE['T'], dic_CCE['T']],
+        violin = ax.violinplot([up_dict[A], down_dict[A], up_down_dict[A], dic_ACE[A], dic_CCE[A],
+                                up_dict[C], down_dict[C], up_down_dict[C], dic_ACE[C], dic_CCE[C],
+                                up_dict[G], down_dict[G], up_down_dict[G], dic_ACE[G], dic_CCE[G],
+                                up_dict[T], down_dict[T], up_down_dict[T], dic_ACE[T], dic_CCE[T]],
                                pos, showmeans=True, showmedians=True, widths=0.8)
         ax.set_xticklabels(labels, fontsize=size_font-5)
         violin['cmeans'].set_color('r')
@@ -764,17 +767,17 @@ def boxplot_nucleotide_rich_or_poor_codon(output, up_dict, down_dict, up_down_di
         labels = ["up", "down", "ACE", "CCE"] * 4
         pos = [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19]
         ax.set_xticks(pos)
-        box = ax.boxplot([up_dict['A'], down_dict['A'], dic_ACE['A'], dic_CCE['A'],
-                          up_dict['C'], down_dict['C'], dic_ACE['C'], dic_CCE['C'],
-                          up_dict['G'], down_dict['G'], dic_ACE['G'], dic_CCE['G'],
-                          up_dict['T'], down_dict['T'], dic_ACE['T'], dic_CCE['T']], positions=pos, labels=labels,
+        box = ax.boxplot([up_dict[A], down_dict[A], dic_ACE[A], dic_CCE[A],
+                          up_dict[C], down_dict[C], dic_ACE[C], dic_CCE[C],
+                          up_dict[G], down_dict[G], dic_ACE[G], dic_CCE[G],
+                          up_dict[T], down_dict[T], dic_ACE[T], dic_CCE[T]], positions=pos, labels=labels,
                          showmeans=True, notch=False, patch_artist=True)
         for i in range(len(box['boxes'])):
             box['boxes'][i].set_facecolor(set_color(i, 4))
-        violin = ax.violinplot([up_dict['A'], down_dict['A'], dic_ACE['A'], dic_CCE['A'],
-                                up_dict['C'], down_dict['C'], dic_ACE['C'], dic_CCE['C'],
-                                up_dict['G'], down_dict['G'], dic_ACE['G'], dic_CCE['G'],
-                                up_dict['T'], down_dict['T'], dic_ACE['T'], dic_CCE['T']],
+        violin = ax.violinplot([up_dict[A], down_dict[A], dic_ACE[A], dic_CCE[A],
+                                up_dict[C], down_dict[C], dic_ACE[C], dic_CCE[C],
+                                up_dict[G], down_dict[G], dic_ACE[G], dic_CCE[G],
+                                up_dict[T], down_dict[T], dic_ACE[T], dic_CCE[T]],
                                pos, showmeans=True, showmedians=True, widths=0.8)
         ax.set_xticklabels(labels, fontsize=size_font-5)
         violin['cmeans'].set_color('r')
@@ -789,17 +792,17 @@ def boxplot_nucleotide_rich_or_poor_codon(output, up_dict, down_dict, up_down_di
         labels = ["input", "ACE", "CCE"] * 4
         pos = [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]
         ax.set_xticks(pos)
-        box = ax.boxplot([up_dict['A'], dic_ACE['A'], dic_CCE['A'],
-                          up_dict['C'], dic_ACE['C'], dic_CCE['C'],
-                          up_dict['G'], dic_ACE['G'], dic_CCE['G'],
-                          up_dict['T'], dic_ACE['T'], dic_CCE['T']],
+        box = ax.boxplot([up_dict[A], dic_ACE[A], dic_CCE[A],
+                          up_dict[C], dic_ACE[C], dic_CCE[C],
+                          up_dict[G], dic_ACE[G], dic_CCE[G],
+                          up_dict[T], dic_ACE[T], dic_CCE[T]],
                          positions=pos, labels=labels, showmeans=True, notch=False, patch_artist=True)
         for i in range(len(box['boxes'])):
             box['boxes'][i].set_facecolor(set_color(i, 3))
-        violin = ax.violinplot([up_dict['A'], dic_ACE['A'], dic_CCE['A'],
-                                up_dict['C'], dic_ACE['C'], dic_CCE['C'],
-                                up_dict['G'], dic_ACE['G'], dic_CCE['G'],
-                                up_dict['T'], dic_ACE['T'], dic_CCE['T']],
+        violin = ax.violinplot([up_dict[A], dic_ACE[A], dic_CCE[A],
+                                up_dict[C], dic_ACE[C], dic_CCE[C],
+                                up_dict[G], dic_ACE[G], dic_CCE[G],
+                                up_dict[T], dic_ACE[T], dic_CCE[T]],
                                pos, showmeans=True, showmedians=True, widths=0.8)
         violin['cmeans'].set_color('r')
         violin['cmeans'].set_linewidths(2)
@@ -823,8 +826,9 @@ def boxplot_nucleotide_rich_or_poor_codon(output, up_dict, down_dict, up_down_di
         plt.ylabel(u"Fréquences dans les exons", fontsize=size_font)
         plt.savefig(output + "proportion_nucleotide_rich_codon.png", bbox_inches='tight')
     elif rich == "poor":
-        ax.legend((hb, hr, hy, hg), ('A poor codons', 'C poor codons', 'G poor codons', 'T poor codons'))
-        plt.title(u"Proportion de codons pauvres en A, C, G, T dans différents jeux d'exons", fontsize=size_font)
+        ax.legend((hb, hr, hy, hg), ('codon only B ', 'codon only D', 'codon only H', 'codon only V'))
+        plt.title(u"Proportion de codons ne contenant que des nucleotides B, D, H, V"
+                  u" dans différents jeux d'exons", fontsize=size_font)
         plt.ylabel(u"Fréquences dans les exons", fontsize=size_font)
         plt.savefig(output + "proportion_nucleotide_poor_codon.png", bbox_inches='tight')
     else:
@@ -861,34 +865,34 @@ def boxplot_dinucleotide_rich_or_poor_codon(output, up_dict, down_dict, up_down_
     size_font = 20
     fig, ax = plt.subplots(figsize=(48. / 2.54, 27 / 2.54))
     # loading the variable we need to complete the graphics
-    sys.path.insert(0, "/home/nicolas/PycharmProjects/projet_et_stat_et_graph3/nucleotides_riche_codon_ACE_CCE/")
+    sys.path.insert(0, "/home/nicolas/PycharmProjects/projet_et_stat_et_graph5/nucleotides_riche_codon_ACE_CCE/")
     if rich_codon == "rich":
         from ACE_rich import dic_ACE
         from CCE_rich import dic_CCE
     else:
-        from ACE_poor import dic_ACE
-        from CCE_poor import dic_CCE
+        from ACE_only import dic_ACE
+        from CCE_only import dic_CCE
 
     if down_dict is not None and up_down_dict is not None:
         labels = ["up", "down", "up\nand\ndown", "ACE", "CCE"] * 6
         pos = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 26, 27, 28, 29,
                        31, 32, 33, 34, 35]
         ax.set_xticks(pos)
-        box = ax.boxplot([up_dict['AC'], down_dict['AC'], up_down_dict['AC'], dic_ACE['AC'], dic_CCE['AC'],
-                          up_dict['AG'], down_dict['AG'], up_down_dict['AG'], dic_ACE['AG'], dic_CCE['AG'],
-                          up_dict['AT'], down_dict['AT'], up_down_dict['AT'], dic_ACE['AT'], dic_CCE['AT'],
-                          up_dict['CG'], down_dict['CG'], up_down_dict['CG'], dic_ACE['CG'], dic_CCE['CG'],
-                          up_dict['CT'], down_dict['CT'], up_down_dict['CT'], dic_ACE['CT'], dic_CCE['CT'],
-                          up_dict['GT'], down_dict['GT'], up_down_dict['GT'], dic_ACE['GT'], dic_CCE['GT'],
+        box = ax.boxplot([up_dict['Y'], down_dict['Y'], up_down_dict['Y'], dic_ACE['Y'], dic_CCE['Y'],
+                          up_dict['R'], down_dict['R'], up_down_dict['R'], dic_ACE['R'], dic_CCE['R'],
+                          up_dict['W'], down_dict['W'], up_down_dict['W'], dic_ACE['W'], dic_CCE['W'],
+                          up_dict['S'], down_dict['S'], up_down_dict['S'], dic_ACE['S'], dic_CCE['S'],
+                          up_dict['K'], down_dict['K'], up_down_dict['K'], dic_ACE['K'], dic_CCE['K'],
+                          up_dict['M'], down_dict['M'], up_down_dict['M'], dic_ACE['M'], dic_CCE['M'],
                           ], positions=pos, labels=labels, showmeans=True, notch=False, patch_artist=True)
         for i in range(len(box['boxes'])):
             box['boxes'][i].set_facecolor(set_color(i, 5))
-        violin = ax.violinplot([up_dict['AC'], down_dict['AC'], up_down_dict['AC'], dic_ACE['AC'], dic_CCE['AC'],
-                                up_dict['AG'], down_dict['AG'], up_down_dict['AG'], dic_ACE['AG'], dic_CCE['AG'],
-                                up_dict['AT'], down_dict['AT'], up_down_dict['AT'], dic_ACE['AT'], dic_CCE['AT'],
-                                up_dict['CG'], down_dict['CG'], up_down_dict['CG'], dic_ACE['CG'], dic_CCE['CG'],
-                                up_dict['CT'], down_dict['CT'], up_down_dict['CT'], dic_ACE['CT'], dic_CCE['CT'],
-                                up_dict['GT'], down_dict['GT'], up_down_dict['GT'], dic_ACE['GT'], dic_CCE['GT']],
+        violin = ax.violinplot([up_dict['Y'], down_dict['Y'], up_down_dict['Y'], dic_ACE['Y'], dic_CCE['Y'],
+                                up_dict['R'], down_dict['R'], up_down_dict['R'], dic_ACE['R'], dic_CCE['R'],
+                                up_dict['W'], down_dict['W'], up_down_dict['W'], dic_ACE['W'], dic_CCE['W'],
+                                up_dict['S'], down_dict['S'], up_down_dict['S'], dic_ACE['S'], dic_CCE['S'],
+                                up_dict['K'], down_dict['K'], up_down_dict['K'], dic_ACE['K'], dic_CCE['K'],
+                                up_dict['M'], down_dict['M'], up_down_dict['M'], dic_ACE['M'], dic_CCE['M']],
                                pos, showmeans=True, showmedians=True, widths=0.8)
         violin['cmeans'].set_color('r')
         violin['cmeans'].set_linewidths(2)
@@ -903,21 +907,21 @@ def boxplot_dinucleotide_rich_or_poor_codon(output, up_dict, down_dict, up_down_
         labels = ["up", "down", "ACE", "CCE"] * 6
         pos = [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19, 21, 22, 23, 24, 26, 27, 28, 29]
         ax.set_xticks(pos)
-        box = ax.boxplot([up_dict['AC'], down_dict['AC'], dic_ACE['AC'], dic_CCE['AC'],
-                          up_dict['AG'], down_dict['AG'], dic_ACE['AG'], dic_CCE['AG'],
-                          up_dict['AT'], down_dict['AT'], dic_ACE['AT'], dic_CCE['AT'],
-                          up_dict['CG'], down_dict['CG'], dic_ACE['CG'], dic_CCE['CG'],
-                          up_dict['CT'], down_dict['CT'], dic_ACE['CT'], dic_CCE['CT'],
-                          up_dict['GT'], down_dict['GT'], dic_ACE['GT'], dic_CCE['GT'],
+        box = ax.boxplot([up_dict['Y'], down_dict['Y'], dic_ACE['Y'], dic_CCE['Y'],
+                          up_dict['R'], down_dict['R'], dic_ACE['R'], dic_CCE['R'],
+                          up_dict['W'], down_dict['W'], dic_ACE['W'], dic_CCE['W'],
+                          up_dict['S'], down_dict['S'], dic_ACE['S'], dic_CCE['S'],
+                          up_dict['K'], down_dict['K'], dic_ACE['K'], dic_CCE['K'],
+                          up_dict['M'], down_dict['M'], dic_ACE['M'], dic_CCE['M'],
                           ], positions=pos, labels=labels, showmeans=True, notch=False, patch_artist=True)
         for i in range(len(box['boxes'])):
             box['boxes'][i].set_facecolor(set_color(i, 4))
-        violin = ax.violinplot([up_dict['AC'], down_dict['AC'], dic_ACE['AC'], dic_CCE['AC'],
-                                up_dict['AG'], down_dict['AG'], dic_ACE['AG'], dic_CCE['AG'],
-                                up_dict['AT'], down_dict['AT'], dic_ACE['AT'], dic_CCE['AT'],
-                                up_dict['CG'], down_dict['CG'], dic_ACE['CG'], dic_CCE['CG'],
-                                up_dict['CT'], down_dict['CT'], dic_ACE['CT'], dic_CCE['CT'],
-                                up_dict['GT'], down_dict['GT'], dic_ACE['GT'], dic_CCE['GT']],
+        violin = ax.violinplot([up_dict['Y'], down_dict['Y'], dic_ACE['Y'], dic_CCE['Y'],
+                                up_dict['R'], down_dict['R'], dic_ACE['R'], dic_CCE['R'],
+                                up_dict['W'], down_dict['W'], dic_ACE['W'], dic_CCE['W'],
+                                up_dict['S'], down_dict['S'], dic_ACE['S'], dic_CCE['S'],
+                                up_dict['K'], down_dict['K'], dic_ACE['K'], dic_CCE['K'],
+                                up_dict['M'], down_dict['M'], dic_ACE['M'], dic_CCE['M']],
                                pos, showmeans=True, showmedians=True, widths=0.8)
         violin['cmeans'].set_color('r')
         violin['cmeans'].set_linewidths(2)
@@ -926,27 +930,27 @@ def boxplot_dinucleotide_rich_or_poor_codon(output, up_dict, down_dict, up_down_
         for i in range(len(violin['bodies'])):
             violin['bodies'][i].set_color(set_color(i, 4))
             violin['bodies'][i].set_alpha(0.3)
-            violin['bodies'][i].set_edgecolor(set_color(i, 3))
+            violin['bodies'][i].set_edgecolor(set_color(i, 4))
 
     else:
         labels = ["input", "ACE", "CCE"] * 6
         pos = [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15, 17, 18, 19, 21, 22, 23]
         ax.set_xticks(pos)
-        box = ax.boxplot([up_dict['AC'], dic_ACE['AC'], dic_CCE['AC'],
-                          up_dict['AG'], dic_ACE['AG'], dic_CCE['AG'],
-                          up_dict['AT'], dic_ACE['AT'], dic_CCE['AT'],
-                          up_dict['CG'], dic_ACE['CG'], dic_CCE['CG'],
-                          up_dict['CT'], dic_ACE['CT'], dic_CCE['CT'],
-                          up_dict['GT'], dic_ACE['GT'], dic_CCE['GT']],
+        box = ax.boxplot([up_dict['Y'], dic_ACE['Y'], dic_CCE['Y'],
+                          up_dict['R'], dic_ACE['R'], dic_CCE['R'],
+                          up_dict['W'], dic_ACE['W'], dic_CCE['W'],
+                          up_dict['S'], dic_ACE['S'], dic_CCE['S'],
+                          up_dict['K'], dic_ACE['K'], dic_CCE['K'],
+                          up_dict['M'], dic_ACE['M'], dic_CCE['M']],
                          positions=pos, labels=labels, showmeans=True, notch=False, patch_artist=True)
         for i in range(len(box['boxes'])):
             box['boxes'][i].set_facecolor(set_color(i, 3))
-        violin = ax.violinplot([up_dict['AC'], dic_ACE['AC'], dic_CCE['AC'],
-                                up_dict['AG'], dic_ACE['AG'], dic_CCE['AG'],
-                                up_dict['AT'], dic_ACE['AT'], dic_CCE['AT'],
-                                up_dict['CG'], dic_ACE['CG'], dic_CCE['CG'],
-                                up_dict['CT'], dic_ACE['CT'], dic_CCE['CT'],
-                                up_dict['GT'], dic_ACE['GT'], dic_CCE['GT']],
+        violin = ax.violinplot([up_dict['Y'], dic_ACE['Y'], dic_CCE['Y'],
+                                up_dict['R'], dic_ACE['R'], dic_CCE['R'],
+                                up_dict['W'], dic_ACE['W'], dic_CCE['W'],
+                                up_dict['S'], dic_ACE['S'], dic_CCE['S'],
+                                up_dict['K'], dic_ACE['K'], dic_CCE['K'],
+                                up_dict['M'], dic_ACE['M'], dic_CCE['M']],
                                pos, showmeans=True, showmedians=True, widths=0.8)
         violin['cmeans'].set_color('r')
         violin['cmeans'].set_linewidths(2)
@@ -967,17 +971,18 @@ def boxplot_dinucleotide_rich_or_poor_codon(output, up_dict, down_dict, up_down_
     plt.xlabel(u"Jeux d'exons", fontsize=size_font)
     plt.ylabel(u"Fréquences dans les exons", fontsize=size_font)
     if rich_codon == "rich":
-        ax.legend((hb, hr, hy, hg, hk, hc), ('AC rich codons', 'AG rich codons', 'AT rich codons', 'CG rich codons',
-                                             'CT rich codon', 'GT rich codon'), loc=1)
-        plt.title(u"Proportion en codons riches en AC, AG, AT, CG, CT, GT, dans différents jeux d'exons",
+        ax.legend((hb, hr, hy, hg, hk, hc), ('Y rich codons', 'R rich codons', 'W rich codons', 'S rich codons',
+                                             'K rich codon', 'M rich codon'), loc=1)
+        plt.title(u"Proportion en codons riches en nucleotides Y, R, W, S, K, M dans différents jeux d'exons",
                   fontsize=size_font)
         plt.savefig(output + "proportion_dinucleotide_rich_codon.png", bbox_inches='tight')
     else:
-        ax.legend((hb, hr, hy, hg, hk, hc), ('AC poor codons', 'AG poor codons', 'AT poor codons', 'CG poor codons',
-                                             'CT poor codon', 'GT poor codon'), loc=1)
-        plt.title(u"Proportion en codons pauvres en AC, AG, AT, CG, CT, GT, dans différents jeux d'exons",
+        ax.legend((hb, hr, hy, hg, hk, hc), ('codons only Y', 'codons only R', 'codons only W', 'codon only S',
+                                             'codon only K', 'codons only M'), loc=1)
+        plt.title(u"Proportion en codons ne contenant que des nucléotides  Y, R, W, S, K, M dans différents jeux "
+                  u"d'exons",
                   fontsize=size_font)
-        plt.savefig(output + "proportion_dinucleotide_poor_codon.png", bbox_inches='tight')
+        plt.savefig(output + "proportion_dinucleotide_only_codon.png", bbox_inches='tight')
 
     plt.clf()
     plt.cla()
