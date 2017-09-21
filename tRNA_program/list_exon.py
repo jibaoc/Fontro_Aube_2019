@@ -691,7 +691,7 @@ class ListExon:
         AT, CG, CT, GT
         A codon rich in A contains at least 2 A. A codon rich in AC contains at least 2 A or 2 C or one 1 and one C
         """
-        dic_res = {'A': [], "C": [], "G": [], 'T': [], 'AC': [], 'AG': [], 'AT': [], 'CG': [], 'CT': [], 'GT': []}
+        dic_res = {'A': [], "C": [], "G": [], 'T': [], 'M': [], 'R': [], 'W': [], 'S': [], 'Y': [], 'K': []}
         for i in range(len(self.exon_list)):
             if len(self.exon_list[i].codon) > 0:
                 dic = sequence_rich_analyser(self.exon_list[i].codon, dic_res.keys())
@@ -701,14 +701,27 @@ class ListExon:
 
     def codon_poor_exon_analyser(self):
         """
-        :return: (dictionary of list of float) give for each exon, their proportion in codons poor in A,C,G,T,AC, AG,
-        AT, CG, CT, GT
-        A codon poor in A contains no A. A codon poor in AC contains no 2 A and no C
+        :return: (dictionary of list of float) give for each exon, their proportion in codons D, V, H, B (i.e.
+        without C, T, G, A respectively)
+        A codon poor in A contains no A. A codon poor in AC contains no  A and no C
         """
-        dic_res = {'A': [], "C": [], "G": [], 'T': [], 'AC': [], 'AG': [], 'AT': [], 'CG': [], 'CT': [], 'GT': []}
+        dic_res = {'D': [], "V": [], "H": [], 'B': []}
         for i in range(len(self.exon_list)):
             if len(self.exon_list[i].codon) > 0:
                 dic = sequence_poor_analyser(self.exon_list[i].codon, dic_res.keys())
+                for comp in dic.keys():
+                    dic_res[comp].append(float(dic[comp][1]))
+        return dic_res
+
+    def codon_plus_exon_analyser(self):
+        """
+        :return: (dictionary of list of float) give for each exon, their proportion in codons containing only
+        Y, R, W, S, K, M  nt
+        """
+        dic_res = {'Y': [], 'R': [], 'W': [], 'S': [], 'K': [], 'M': []}
+        for i in range(len(self.exon_list)):
+            if len(self.exon_list[i].codon) > 0:
+                dic = sequence_plus_analyser(self.exon_list[i].codon)
                 for comp in dic.keys():
                     dic_res[comp].append(float(dic[comp][1]))
         return dic_res
@@ -745,12 +758,12 @@ def sequence_rich_analyser(list_of_codon, list_type_nt):
         dic_nt = {'A': 0, "C": 0, "G": 0, 'T': 0}
         for letters in codon:
             dic_nt[letters] += 1
-        dic_nt['AC'] = dic_nt['A'] + dic_nt['C']
-        dic_nt['AG'] = dic_nt['A'] + dic_nt['G']
-        dic_nt['AT'] = dic_nt['A'] + dic_nt['T']
-        dic_nt['CG'] = dic_nt['C'] + dic_nt['G']
-        dic_nt['CT'] = dic_nt['C'] + dic_nt['T']
-        dic_nt['GT'] = dic_nt['G'] + dic_nt['T']
+        dic_nt['M'] = dic_nt['A'] + dic_nt['C']
+        dic_nt['R'] = dic_nt['A'] + dic_nt['G']
+        dic_nt['W'] = dic_nt['A'] + dic_nt['T']
+        dic_nt['S'] = dic_nt['C'] + dic_nt['G']
+        dic_nt['Y'] = dic_nt['C'] + dic_nt['T']
+        dic_nt['K'] = dic_nt['G'] + dic_nt['T']
         for type_nt in dic_nt.keys():
             if dic_nt[type_nt] > 1:
                 res_dic[type_nt][0] += 1
@@ -770,25 +783,43 @@ def sequence_poor_analyser(list_of_codon, list_type_nt):
     (i.e codon without A, C, T, G, A and C, A and G, A and T, C and G, C and T, G and T)
     """
     res_dic = {}
+    nt2res = {'A': 'B', 'C': 'D', 'G': 'H', 'T': 'V'}
     for type_nt in list_type_nt:
         res_dic[type_nt] = [0, 0]
     for codon in list_of_codon:
         dic_nt = {'A': 0, "C": 0, "G": 0, 'T': 0}
         for letters in codon:
             dic_nt[letters] += 1
-        dic_nt['AC'] = dic_nt['A'] + dic_nt['C']
-        dic_nt['AG'] = dic_nt['A'] + dic_nt['G']
-        dic_nt['AT'] = dic_nt['A'] + dic_nt['T']
-        dic_nt['CG'] = dic_nt['C'] + dic_nt['G']
-        dic_nt['CT'] = dic_nt['C'] + dic_nt['T']
-        dic_nt['GT'] = dic_nt['G'] + dic_nt['T']
         for type_nt in dic_nt.keys():
             if dic_nt[type_nt] == 0:
-                res_dic[type_nt][0] += 1
+                res_dic[nt2res[type_nt]][0] += 1
     for type_nt in res_dic.keys():
         res_dic[type_nt][1] = round((float(res_dic[type_nt][0]) / len(list_of_codon)) * 100, 3)
     return res_dic
 
+
+def sequence_plus_analyser(list_of_codon):
+    """
+    :param list_of_codon: (list of string) the list of codon of an exon/ a metaexon ( i.e. sequence formed by the
+        concatenation of every exon sequence from the user/control set of exons)
+    :return: (dictionary of lists [ int, float ]), the number of codon in the user/control set of exons that
+        only contains Y, R, W, S K, M nucleotides (key of the dictionary)
+    """
+    res_dic = {}
+    nt2res = {'Y': ['C', 'T'], 'R': ['A', 'G'], 'W': ['A', 'T'], 'S': ['C', 'G'], 'K': ['G', 'T'], 'M': ['C', 'A']}
+    for type_nt in nt2res.keys():
+        res_dic[type_nt] = [0, 0]
+    for codon in list_of_codon:
+        dic_nt = {'A': 0, "C": 0, "G": 0, 'T': 0}
+        for letters in codon:
+            dic_nt[letters] += 1
+        for type_nt in nt2res.keys():
+            nt_tot = dic_nt[nt2res[type_nt][0]] + dic_nt[nt2res[type_nt][1]]
+            if nt_tot == 3:
+                res_dic[type_nt][0] += 1
+    for type_nt in res_dic.keys():
+        res_dic[type_nt][1] = round((float(res_dic[type_nt][0]) / len(list_of_codon)) * 100, 3)
+    return res_dic
 
 def sequence_all_analyser(list_of_codon, list_type_nt):
     """
