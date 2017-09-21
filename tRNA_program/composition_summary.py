@@ -212,7 +212,14 @@ def get_content_second_sheet(dic_up_composition, dic_up_last_nt, dic_down_compos
     """
     # initialisation of some variables
     merging_content = None
-    list_comp = ['A>=2', 'C>=2', 'G>=2', 'T>=2', 'AC>=2', 'AG>=2', 'AT>=2', 'CG>=2', 'CT>=2', 'GT>=2', 'A=0', 'C=0', 'G=0', 'T=0', 'AC=0', 'AG=0', 'AT=0', 'CG=0', 'CT=0', 'GT=0']
+    #list_comp = ['A>=2', 'C>=2', 'G>=2', 'T>=2', 'M>=2', 'R>=2', 'W>=2', 'S>=2', 'Y>=2', 'K>=2', 'B', 'D', 'H', 'V', 'K+', 'Y+', 'S+', 'W+', 'R+', 'M+']
+    list_comp = ['A>=2', 'C>=2', 'G>=2', 'T>=2', 'AC>=2', 'AG>=2', 'AT>=2', 'CG>=2', 'CT>=2', 'GT>=2', 'A=0', 'C=0',
+                 'G=0', 'T=0', 'AC=0', 'AG=0', 'AT=0', 'CG=0', 'CT=0', 'GT=0']
+    comp2iupac = {
+        'A>=2': 'A>=2', 'C>=2': 'C>=2', 'G>=2': 'G>=2', 'T>=2': 'T>=2', 'AC>=2':'M>=2', 'AG>=2':'R>=2', 'AT>=2': 'W>=2',
+        'CG>=2': 'S>=2', 'CT>=2':'Y>=2', 'GT>=2': 'K>=2', 'A=0':'B', 'C=0': 'D',
+                 'G=0':'H', 'T=0': 'V', 'AC=0': 'K+', 'AG=0': 'Y+', 'AT=0': 'S+', 'CG=0':'W+' , 'CT=0':'R+' , 'GT=0':'M+'
+    }
     content = list()
     header1 = None
     merging_value = None
@@ -243,7 +250,7 @@ def get_content_second_sheet(dic_up_composition, dic_up_last_nt, dic_down_compos
     for comp in list_comp:
         my_row = None
         if dic_down_composition is not None and dic_up_down_composition is not None:
-            my_row = [comp, dic_up_composition[comp][0], dic_up_composition[comp][1],
+            my_row = [comp2iupac[comp], dic_up_composition[comp][0], dic_up_composition[comp][1],
                       dic_down_composition[comp][0], dic_down_composition[comp][1], dic_up_down_composition[comp][0],
                       dic_up_down_composition[comp][1], dic_ace_composition[comp][0], dic_ace_composition[comp][1],
                       dic_cce_composition[comp][0], dic_cce_composition[comp][1],
@@ -255,7 +262,7 @@ def get_content_second_sheet(dic_up_composition, dic_up_last_nt, dic_down_compos
                       dic_down_composition[comp][1] - dic_cce_composition[comp][1],
                       dic_up_down_composition[comp][1] - dic_cce_composition[comp][1]]
         elif dic_down_composition is not None and dic_up_down_composition is None:
-            my_row = [comp, dic_up_composition[comp][0], dic_up_composition[comp][1],
+            my_row = [comp2iupac[comp], dic_up_composition[comp][0], dic_up_composition[comp][1],
                       dic_down_composition[comp][0], dic_down_composition[comp][1], dic_ace_composition[comp][0],
                       dic_ace_composition[comp][1], dic_cce_composition[comp][0], dic_cce_composition[comp][1],
                       dic_up_composition[comp][1] - dic_down_composition[comp][1],
@@ -264,7 +271,7 @@ def get_content_second_sheet(dic_up_composition, dic_up_last_nt, dic_down_compos
                       dic_up_composition[comp][1] - dic_cce_composition[comp][1],
                       dic_down_composition[comp][1] - dic_cce_composition[comp][1]]
         elif dic_down_composition is None and dic_up_down_composition is None:
-            my_row = [comp, dic_up_composition[comp][0], dic_up_composition[comp][1],
+            my_row = [comp2iupac[comp], dic_up_composition[comp][0], dic_up_composition[comp][1],
                       dic_ace_composition[comp][0], dic_ace_composition[comp][1], dic_cce_composition[comp][0],
                       dic_cce_composition[comp][1], dic_up_composition[comp][1] - dic_ace_composition[comp][1],
                       dic_up_composition[comp][1] - dic_cce_composition[comp][1]]
