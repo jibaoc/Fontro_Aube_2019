@@ -1,6 +1,7 @@
 from dictionnary import codon2aminoAcid
+from dictionnary import nature2amino_acid
 from dictionnary import amino_acid2nature
-
+from dictionnary import metabolism2amino_acid
 
 class ListExon:
     """
@@ -244,18 +245,21 @@ class ListExon:
         weight the frequency of the nature of amino acids by the length of the exon and by the number of codons
         """
         dic = {}
-        for key in ["Polar", "Nonpolar", "Aromatic", "Positively charged", "Negatively charged", "None"]:
+        for key in nature2amino_acid.keys():
             dic[key] = 0.
             c = 0.
             for i in range(len(self.exon_list)):
-                if len(self.exon_list[i].nature) > 0:
-                    if len(self.exon_list[i].nature) > length_penalty - 1:
+                if len(self.exon_list[i].amino_acid) > 0:
+                    count = 0
+                    for aa in nature2amino_acid[key]:
+                        count += self.exon_list[i].amino_acid.count(aa)
+                    if len(self.exon_list[i].amino_acid) > length_penalty - 1:
                         c += 1.
-                        dic[key] += float(self.exon_list[i].nature.count(key)) / len(self.exon_list[i].nature)
+                        dic[key] += float(count) / len(self.exon_list[i].amino_acid)
                     else:
-                        c += float(len(self.exon_list[i].nature)) / length_penalty
-                        dic[key] += float(self.exon_list[i].nature.count(key)) / len(self.exon_list[i].nature) * len(
-                            self.exon_list[i].nature) / length_penalty
+                        c += float(len(self.exon_list[i].amino_acid)) / length_penalty
+                        dic[key] += float(count) / len(self.exon_list[i].amino_acid) * len(
+                            self.exon_list[i].amino_acid) / length_penalty
             dic[key] = dic[key] / c
         return dic
 
@@ -281,26 +285,6 @@ class ListExon:
             dic[key] = dic[key] / c
         return dic
 
-    def amino_acid_importance_frequency_calculator(self, length_penalty):
-        """
-        weight the frequency of the importance of amino acid
-         (essential, non_essential, conditionally essential) by the length of the exon and by the number of amino acid
-        """
-        dic = {}
-        for key in ["essential", "conditionally_essential", "non_essential", "None"]:
-            dic[key] = 0.
-            c = 0.
-            for i in range(len(self.exon_list)):
-                if len(self.exon_list[i].importance) > 0:
-                    if len(self.exon_list[i].importance) > length_penalty - 1:
-                        c += 1.
-                        dic[key] += float(self.exon_list[i].importance.count(key)) / len(self.exon_list[i].importance)
-                    else:
-                        c += float(len(self.exon_list[i].importance)) / length_penalty
-                        dic[key] += float(self.exon_list[i].importance.count(key)) / len(
-                            self.exon_list[i].importance) * len(self.exon_list[i].importance) / length_penalty
-            dic[key] = dic[key] / c
-        return dic
 
     def amino_acid_metabolism_frequency_calculator(self, length_penalty):
         """
@@ -308,18 +292,21 @@ class ListExon:
          (essential, non_essential, conditionally essential) by the length of the exon and by the number of amino acid
         """
         dic = {}
-        for key in ["TCA_cycle", "Glycolyse", "Pentoses", "None"]:
+        for key in metabolism2amino_acid.keys():
             dic[key] = 0.
             c = 0.
             for i in range(len(self.exon_list)):
-                if len(self.exon_list[i].metabolism) > 0:
-                    if len(self.exon_list[i].metabolism) > length_penalty - 1:
+                if len(self.exon_list[i].amino_acid) > 0:
+                    count = 0
+                    for aa in metabolism2amino_acid[key]:
+                        count += self.exon_list[i].amino_acid.count(aa)
+                    if len(self.exon_list[i].amino_acid) > length_penalty - 1:
                         c += 1.
-                        dic[key] += float(self.exon_list[i].metabolism.count(key)) / len(self.exon_list[i].metabolism)
+                        dic[key] += float(count) / len(self.exon_list[i].amino_acid)
                     else:
-                        c += float(len(self.exon_list[i].metabolism)) / length_penalty
-                        dic[key] += float(self.exon_list[i].metabolism.count(key)) / len(
-                            self.exon_list[i].metabolism) * len(self.exon_list[i].metabolism) / length_penalty
+                        c += float(len(self.exon_list[i].amino_acid)) / length_penalty
+                        dic[key] += float(count) / len(
+                            self.exon_list[i].amino_acid) * len(self.exon_list[i].amino_acid) / length_penalty
             dic[key] = dic[key] / c
         return dic
 
