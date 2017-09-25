@@ -169,7 +169,4 @@ class ExonClass:
                 self.anticodon.append(codon2anticodon[self.cds_sequence[i:i + 3]])
                 self.amino_acid.append(codon2aminoAcid[self.cds_sequence[i:i + 3]])
                 self.peptide_sequence += self.amino_acid[-1]
-                self.nature.append(amino_acid2nature[self.amino_acid[-1]])
                 self.possible_codon.append(amino_acid2codon[self.amino_acid[-1]])
-                self.importance.append(amino_acid2importance[self.amino_acid[-1]])
-                self.metabolism.append(amino_acid2metabolism[self.amino_acid[-1]])
