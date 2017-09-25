@@ -77,6 +77,14 @@ metabolism2amino_acid = {
 }
 
 
+# amino_acid-nature dictionary
+# Links each amino_acid to its specific nature
+amino_acid2nature = {'G': "Nonpolar", 'A': "Nonpolar", 'V': "Nonpolar", 'L': "Nonpolar", 'M': "Nonpolar",
+                     'I': "Nonpolar", 'S': "Polar", 'T': "Polar", 'C': "Polar", 'P': "Polar", 'N': "Polar",
+                     'Q': "Polar", 'F': "Aromatic", 'Y': "Aromatic", 'W': "Aromatic", 'K': "Positively charged",
+                     'R': "Positively charged", 'H': "Positively charged", 'D': 'Negatively charged',
+                     'E': "Negatively charged", "*": "None"}
+
 # codon2rareness
 # source atg.me for rare codon (--) and fasterDB+the homo sapiens usage database from the codon usage database
 # for each codon says if the codon is rare (--) or has a the weakest frequency (-) in comparison of the other codons
