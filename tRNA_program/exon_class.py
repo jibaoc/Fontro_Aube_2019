@@ -1,11 +1,9 @@
 # Imports of dictionary
 from dictionnary import codon2anticodon  # Links each codon to its amino_acid
 from dictionnary import codon2aminoAcid  # Links each codon to its respective anticodon
-from dictionnary import amino_acid2nature  # Links each amino_acid to its specific nature
 from dictionnary import amino_acid2codon  # Links each amino_acid to its specific codons
-from dictionnary import amino_acid2importance  # For each amino-acid says if its an essential,
 # a non essential or a conditionally essential amino acid
-from dictionnary import amino_acid2metabolism  # For each amino-acid says from each metabolic pathway they come from
+
 
 
 class ExonClass:
