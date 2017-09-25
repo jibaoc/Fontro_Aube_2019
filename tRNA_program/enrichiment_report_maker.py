@@ -16,6 +16,16 @@ from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import FloatVector
 import numpy as np
 
+
+group_nature2complete_name = { "NP": "Non polar", "NP-Alkyl": "Non polar alkyl",
+                               "NP-aromatic": "Non polar and aromatic", "NPR": "Non polar restrained", "P": "Polar",
+                               "PN": "Polar neutral", "PNC": "Polar uncharged", "PNC1": "Polar uncharged 1",
+                               "PNC2" : "Polar uncharged 2", "PC": "Polar charged", "P-NC": "Polar negatively charged",
+                               "P-PC": "Polar positively charged", "HC": "Hydrophobic chain", "H": "Hydrophobic",
+                               "Aliphatic": "Aliphatic", "HS": "hydroxylated/sulfured", "Aromatic": "Aromatic"
+
+}
+
 ##############################################################################
 #                             Functions                                      #
 ##############################################################################
@@ -229,9 +239,9 @@ def get_content_nature_enrichment(control_frequencies, interest_frequencies, dic
     for nature in dic_p_val.keys():
         regulation, regulation_fdr = check_regulation(interest_frequencies[nature], ic_95[nature],
                                                       dic_p_val[nature], p_adjust[i])
-        content.append([str(nature), str(interest_frequencies[nature]), str(np.mean(control_frequencies[nature])),
-                        str(ic_95[nature]), str(dic_p_val[nature]), str(p_adjust[i]), str(regulation),
-                        str(regulation_fdr)])
+        content.append([str(group_nature2complete_name[nature]), str(interest_frequencies[nature]),
+                        str(np.mean(control_frequencies[nature])), str(ic_95[nature]), str(dic_p_val[nature]),
+                        str(p_adjust[i]), str(regulation), str(regulation_fdr)])
         i += 1
     return content
 
