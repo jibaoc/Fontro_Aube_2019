@@ -36,13 +36,6 @@ codon2rare = dict(TTT="", TTC="", TTA="-", TTG="", CTT="", CTC="", CTA="-", CTG=
                   TGA="", TGG="", CGT="-", CGC="", CGA="-", CGG="", AGT="", AGC="", AGA="", AGG="",
                   GGT="", GGC="", GGA="", GGG="")
 
-# amino_acid-nature dictionary
-# Links each amino_acid to its specific nature
-amino_acid2nature = {'G': "Nonpolar", 'A': "Nonpolar", 'V': "Nonpolar", 'L': "Nonpolar", 'M': "Nonpolar",
-                     'I': "Nonpolar", 'S': "Polar", 'T': "Polar", 'C': "Polar", 'P': "Polar", 'N': "Polar",
-                     'Q': "Polar", 'F': "Aromatic", 'Y': "Aromatic", 'W': "Aromatic", 'K': "Positively charged",
-                     'R': "Positively charged", 'H': "Positively charged", 'D': 'Negatively charged',
-                     'E': "Negatively charged", "*": "None"}
 # amino_acid2codon
 # Links each amino acid to those corresponding codon
 amino_acid2codon = {
@@ -60,24 +53,28 @@ amino_acid2codon_list = {
     "K": ["AAA", "AAG"], "D": ["GAT", "GAC"], "E": ["GAA", "GAG"], "C": ["TGT", "TGC"], "W": ["TGG"],
     "R": ["CGT", "CGC", "CGA", "CGG", "AGA", "AGG"], "G": ["GGT", "GGC", "GGA", "GGG"]}
 
-# amino_acid2importance
-# For each amino-acid says if its an essential, a non essential or a conditionally essential amino acid
+# nature2amino_acid
+# link each defined nature to there corresponding amino acid
 
-amino_acid2importance = {"I": "essential", "L": "essential", "M": "essential", "V": "essential", "F": "essential",
-                         "W": "essential", "H": "essential", "T": "essential", "K": "essential", "A": "non_essential",
-                         "D": "non_essential", "N": "non_essential", "E": "non_essential", "S": "non_essential",
-                         "R": "conditionally_essential", "C": "conditionally_essential", "Q": "conditionally_essential",
-                         "Y": "conditionally_essential", "G": "conditionally_essential", "P": "conditionally_essential",
-                         "*": "None"}
+nature2amino_acid = {
+    "NP": ["G", "A", "V", "L", "I", "M", "P", "F", "W"], "NP-Alkyl": ["G", "A", "V", "L", "I", "M", "P"],
+    "NP-aromatic":["F", "W"], "NPR": ["G", "A", "V", "L", "I", "M"],
+    "P": ["Y", "S", "T", "C", "Q", "N", "E", "D", "K", "H", "R"], "PN": ["Y", "S", "T", "C", "Q", "N"],
+    "PNC": ["S", "T", "N", "Q"], "PNC1": ["S", "T", "Q", "N" "C", "P"], "PNC2": ["S", "T", "Q", "N"],
+    "PC": ["E", "D", "R", "H", "K"], "P-NC": ["E", "D"], "P-PC": ["K", "H", "R"],
+    "HC": ["A", "V", "I", "L", "M", "F", "Y", "W"], "H": ["A", "V", "L", "I", "M", "F", "W", "P", "G"],
+    "Aliphatic": ["G", "A", "V", "L", "I"], "HS": ["S", "C", "T", "M"], "Aromatic": ["F", "Y", "W"]
+}
 
-# amino_acid2metabolism
-# For each amino-acid says from each metabolic pathway they come from
+# Metabolism2amino_acid
 
-amino_acid2metabolism = {"I": "TCA_cycle", "L": "Glycolyse", "M": "TCA_cycle", "V": "Glycolyse", "F": "Pentoses",
-                         "W": "Pentoses", "H": "Pentoses", "T": "TCA_cycle", "K": "TCA_cycle", "A": "Glycolyse",
-                         "D": "TCA_cycle", "N": "TCA_cycle", "E": "TCA_cycle", "S": "Glycolyse", "R": "TCA_cycle",
-                         "C": "Glycolyse", "Q": "TCA_cycle", "Y": "Pentoses", "G": "Glycolyse", "P": "TCA_cycle",
-                         "*": "None"}
+
+metabolism2amino_acid = {
+    "Non_essential": ["A", "D", "N", "E", "S"], "Essential": ["I", "L", "M", "V", "F", "W", "H", "T", "K"],
+    "Conditionally_essential": ["R", "C", "Q", "Y", "G", "P"], "Glycolyse": ["L", "V", "A", "S", "G", "C"],
+    "TCA_cycle": ["I", "M", "T", "K", "D", "N", "E", "R", "Q", "P"], "Pentose": ["F", "W", "H", "Y"],
+    "Thiolation": ["K", "Q", "E"]
+}
 
 
 # codon2rareness
