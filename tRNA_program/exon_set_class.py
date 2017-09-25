@@ -1,10 +1,7 @@
 # Imports of dictionary
 # Imports of dictionary
 from dictionnary import codon2aminoAcid  # Links each codon to its respective anticodon
-from dictionnary import amino_acid2nature  # Links each amino_acid to its specific nature
-from dictionnary import amino_acid2importance  # For each amino-acid says if its an essential,
-# a non essential or a conditionally essential amino acid
-from dictionnary import amino_acid2metabolism  # For each amino-acid says from each metabolic pathway they come from
+
 
 
 class ExonSetClass:
@@ -49,9 +46,6 @@ class ExonSetClass:
             if len(self.cds_sequence[i:i + 3]) == 3:
                 self.codon.append(self.cds_sequence[i:i + 3])
                 self.amino_acid.append(codon2aminoAcid[self.cds_sequence[i:i + 3]])
-                self.nature.append(amino_acid2nature[self.amino_acid[-1]])
-                self.importance.append(amino_acid2importance[self.amino_acid[-1]])
-                self.metabolism.append(amino_acid2metabolism[self.amino_acid[-1]])
 
     def found_codon_amino_acid_and_aa_nature(self):
         """
@@ -62,3 +56,4 @@ class ExonSetClass:
             if len(self.cds_sequence[i:i + 3]) == 3:
                 self.codon.append(self.cds_sequence[i:i + 3])
                 self.amino_acid.append(codon2aminoAcid[self.cds_sequence[i:i + 3]])
+
