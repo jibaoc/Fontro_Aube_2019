@@ -236,39 +236,6 @@ def get_content_nature_enrichment(control_frequencies, interest_frequencies, dic
     return content
 
 
-def get_content_importance_enrichment(control_frequencies, interest_frequencies, dic_p_val, set_number):
-    """
-    :param control_frequencies: (dictionary of floats) a dictionary containing the amino acid "importance" frequencies
-    of the control sets "amino acid importance frequencies" represents the frequencies of essential, conditionally
-    essential or non essential amino acid
-    :param interest_frequencies: (dictionary of floats) a dictionary frequency of each amino acid "importance" in the
-    user set of exons
-    :param dic_p_val: (dictionary of floats) a dictionary containing the p_values
-    :param set_number: (int) the number of set to create
-    :return: (list of list of strings) the content of the importance sheet ! Each sublist correspond to a row in the
-    importance sheet of the enrichment_report.xlsx file
-    """
-    content = [["amino_acid_importance", "frequencies_of_the_interest_set",
-                "average_frequencies_of_the_"+str(set_number)+"_sets", "IC_95_of_the_"+str(set_number)+"_sets",
-                "p_values_like", "FDR", "regulation_(p<=0.05)", "regulation(fdr<=0.05)"]]
-    ic_95 = calculate_ic_95(control_frequencies)
-    p_vals = list()
-    for importance in dic_p_val.keys():
-        p_vals.append(dic_p_val[importance])
-    rstats = importr('stats')
-    p_adjust = rstats.p_adjust(FloatVector(p_vals), method="BH")
-    i = 0
-    for importance in dic_p_val.keys():
-        regulation, regulation_fdr = check_regulation(interest_frequencies[importance], ic_95[importance],
-                                                      dic_p_val[importance], p_adjust[i])
-        content.append([str(importance), str(interest_frequencies[importance]),
-                        str(np.mean(control_frequencies[importance])),
-                        str(ic_95[importance]), str(dic_p_val[importance]),
-                        str(p_adjust[i]), str(regulation), str(regulation_fdr)])
-        i += 1
-    return content
-
-
 def get_content_metabolism_enrichment(control_frequencies, interest_frequencies, dic_p_val, set_number):
     """
     :param control_frequencies: (dictionary of floats) a dictionary containing the frequencies of each amino acid that
@@ -305,8 +272,7 @@ def get_content_metabolism_enrichment(control_frequencies, interest_frequencies,
 def writing_enrichment_report_file(control_frequencies_codon, interest_frequencies_codon, dic_p_val_codon,
                                    control_frequencies_aa, interest_frequencies_aa, dic_p_val_aa,
                                    control_frequencies_nature, interest_frequencies_nature, dic_p_val_nature,
-                                   control_frequencies_importance, interest_frequencies_importance,
-                                   dic_p_val_importance, control_frequencies_metabolism,
+                                   control_frequencies_metabolism,
                                    interest_frequencies_metabolism, dic_p_val_metabolism, outpath, set_number):
     """
 
@@ -329,15 +295,6 @@ def writing_enrichment_report_file(control_frequencies_codon, interest_frequenci
     user set of exons
     :param dic_p_val_nature: (dictionary of floats) a dictionary containing the p_values indicating the significance of
     the enrichment for each amino acid nature
-    :param control_frequencies_importance: (dictionary of floats) dictionary of floats) a dictionary containing the
-    'importance' frequencies of the control sets. 'Importance frequencies' here corresponds to the frequencies of
-    the essential, semi-essential and non-essential amino acid in the control sets of exons
-    :param interest_frequencies_importance: (dictionary of floats) a dictionary frequency of each amino acid importance
-    in the user set of exons : 'Importance' here corresponds to the frequencies of
-    the essential, semi-essential and non-essential amino acid in the user set of exons
-    :param dic_p_val_importance: (dictionary of floats) a dictionary containing the p_values indicating the significance
-     of the enrichment for each amino acid importance. 'amino acid importance'  here corresponds to the frequencies of
-    the essential, semi-essential and non-essential amino acids in the user set of exons
     :param control_frequencies_metabolism: (dictionary of floats) a dictionary frequency of each amino acid metabolism
     in the user set of exons : 'Metabolism' here corresponds to the origin metabolism of
     amino acids in the user set of exons
@@ -363,24 +320,19 @@ def writing_enrichment_report_file(control_frequencies_codon, interest_frequenci
                                                                    dic_p_val_aa, set_number)
     nature_content = get_content_nature_enrichment(control_frequencies_nature, interest_frequencies_nature,
                                                    dic_p_val_nature, set_number)
-    importance_content = get_content_importance_enrichment(control_frequencies_importance,
-                                                           interest_frequencies_importance, dic_p_val_importance,
-                                                           set_number)
-    metabolism_content = get_content_importance_enrichment(control_frequencies_metabolism,
+    metabolism_content = get_content_metabolism_enrichment(control_frequencies_metabolism,
                                                            interest_frequencies_metabolism, dic_p_val_metabolism,
                                                            set_number)
     # creating the sheets...
     codon_sheet = workbook.add_worksheet("codon")
     aa_sheet = workbook.add_worksheet("amino_acid")
     nature_sheet = workbook.add_worksheet("nature")
-    importance_sheet = workbook.add_worksheet("importance")
     metabolism_sheet = workbook.add_worksheet("metabolism")
 
     # filling the sheets...
     sheet_filler(codon_content, codon_sheet, header_format, normal_format)
     sheet_filler(aa_content, aa_sheet, header_format, normal_format)
     sheet_filler(nature_content, nature_sheet, header_format, normal_format)
-    sheet_filler(importance_content, importance_sheet, header_format, normal_format)
     sheet_filler(metabolism_content, metabolism_sheet, header_format, normal_format)
     workbook.close()
     return dic_padjust_codon, dic_padjust_aa
