@@ -76,6 +76,69 @@ metabolism2amino_acid = {
     "Thiolation": ["K", "Q", "E"]
 }
 
+# side chain properties:
+schain2aa = {
+    "Small": ["A", "C", "D", "G", "N", "P", "S", "T", "V"], "Tiny": ["A", "C", "G", "S", "T"],
+    "Aliphatic": ["A", "G", "I", "L", "V"], "Aliphatic_s": ["I", "L", "V"],
+    "side_chain_aliphatic_polar": ["C", "M", "S", "T"], "Aromatic": ["F", "W", "Y", "H"], "Aromatic_s": ["F", "W", "Y"],
+    "Aromatic_NP": ["F", "W"], "Sulfuric": ["C", "M"], "Hydroxylic": ["S", "T", "Y"], "Amidic": ["N", "Q"],
+    "Acidic_side_chain": ["D", "N", "E", "Q"], "Basic_amino_acid": ["H", "K", "R"]
+}
+
+# hydro properties
+hydro_info2aa = {
+    "Hydrophobic": ["A", "C", "I", "L", "M", "F", "P", "W", "Y", "V"],
+    "Hydrophobic_NP": ["A", "G", "I", "L", "M", "F", "P", "W", "V"],
+    "Hydrophobic_side_chain": ["A", "I", "L", "M", "F", "W", "Y", "V"],
+    "Hydrophobic-Alkyl": ["A", "G", "I", "L", "M", "P", "V"],
+    "Hydrophobic-aromatic": ["F", "W"],
+    "Hydrophilic": ["E", "D", "H", "K", "N", "Q", "R", "S", "T"],
+    "Hydrophilic_polar": ["N", "C", "Q", "S", "T", "Y", "E", "D", "R", "H", "K"],
+    "Hydrophylic_side_chain_polar": ["N", "Q", "S", "T", "Y", "E", "D", "R", "H", "K"],
+    "Hydrophilic_neutral": ["N", "C", "Q", "S", "T", "Y"],
+    "Hydrophilic_side_chain_uncharged": ["N", "Q", "S", "T", "Y"],
+    "Hydrophilic_charged": ["E", "D", "R", "H", "K"],
+    "Hydrophilic_Acidic_negative_charged": ["D", "E"],
+    "Hydrophilic_Basic_positive_charged": ["R", "H", "K"],
+    "Hydrophilic_positively_charged": ["R", "K"]
+}
+
+charge_info2aa = {
+    "Neutral": ["A","C","F","G","I","L","M","N","P","Q","S","T","V","W"],
+    "Neutral_s": ["A","C","N","Q","S","T","Y"],
+    "Charged": ["R","H","K","D","E" ],
+    "Positively_charged": ["R","H","K"],
+    "Positively_charged_s": ["R","K"],
+    "Negatively_charged": ["D","E"]
+}
+
+polarity_info2aa = {
+    "Non_polar_1": ["G", "A", "V", "L", "I", "M", "P", "F", "W"],
+    "Non_polar_2": ["A", "I", "L", "M", "P", "V", "F", "W"],
+    "Non_polar_1s": ["G", "A", "V", "L", "I", "M"],
+    "Non_polar_alkyl": ["G", "A", "V", "L", "I", "M", "P"],
+    "Non_polar_aromatic": ["F", "W"],
+    "Polar": ["Y", "S", "T", "C", "Q", "N", "E", "D", "K", "H", "R"],
+    "Polar_uncharged1": ["G", "S", "T", "C", "Y", "N", "Q"],
+    "Polar_uncharged2": ["S", "T", "Q", "N", "C", "P"],
+    "Polar_uncharged3": ["Y", "S", "T", "C", "Q", "N"],
+    "Polar_uncharged4": ["S", "T", "N", "Q"],
+    "Polar_charged": ["E", "D", "R", "H", "K"],
+    "Polar_positively_charged": ["R", "H", "K"],
+    "Polar_positively_charged_s": ["R", "K"],
+    "Polar_negatively_charged": ["D", "E"]
+}
+
+misc2aa = {
+    "Low_complexity": ["S", "P", "G", "R", "K"],
+    "Disorder_promoting": ["A", "R", "G", "Q", "S", "E", "K", "P"],
+    "Disorder_promoting_s": ["S", "P", "G", "R"],
+    "Order_promoting": ["W", "Y", "F", "I", "L", "V", "C", "N"],
+    "Thiolation": ["K", "Q", "E"],
+    "EPRS": ["P", "E"],
+    "PEVK": ["P", "E", "V", "K"]
+}
+
 
 # amino_acid-nature dictionary
 # Links each amino_acid to its specific nature
