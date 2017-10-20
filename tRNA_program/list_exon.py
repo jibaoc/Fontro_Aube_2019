@@ -263,6 +263,40 @@ class ListExon:
             dic[key] = dic[key] / c
         return dic
 
+    def amino_acid_info_frequency_calculator(self, length_penalty, calcul):
+        """
+        weight the frequency of the nature of amino acids by the length of the exon and by the number of codons
+        """
+        module_dic = __import__('dictionnary')
+        if calcul == "side_chain":
+            cur_dic = module_dic.schain2aa
+        elif calcul == "hydro":
+            cur_dic = module_dic.hydro_info2aa
+        elif calcul == "charge":
+            cur_dic = module_dic.charge_info2aa
+        elif calcul == "polarity":
+            cur_dic = module_dic.polarity_info2aa
+        else:
+            cur_dic = module_dic.misc2aa
+        dic = {}
+        for key in cur_dic.keys():
+            dic[key] = 0.
+            c = 0.
+            for i in range(len(self.exon_list)):
+                if len(self.exon_list[i].amino_acid) > 0:
+                    count = 0
+                    for aa in cur_dic[key]:
+                        count += self.exon_list[i].amino_acid.count(aa)
+                    if len(self.exon_list[i].amino_acid) > length_penalty - 1:
+                        c += 1.
+                        dic[key] += float(count) / len(self.exon_list[i].amino_acid)
+                    else:
+                        c += float(len(self.exon_list[i].amino_acid)) / length_penalty
+                        dic[key] += float(count) / len(self.exon_list[i].amino_acid) * len(
+                            self.exon_list[i].amino_acid) / length_penalty
+            dic[key] = dic[key] / c
+        return dic
+
     def amino_acid_frequency_calculator(self, length_penalty):
         """
         weight the frequency of an amino acid by the length of the exon and by the number of amino acid
