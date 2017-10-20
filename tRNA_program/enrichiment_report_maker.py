@@ -215,7 +215,7 @@ def get_content_amino_acid_enrichment(control_frequencies, interest_frequencies,
     return content, dic_padjust
 
 
-def get_content_nature_enrichment(control_frequencies, interest_frequencies, dic_p_val, set_number):
+def get_content_group_enrichment(control_frequencies, interest_frequencies, dic_p_val, set_number, name):
     """
     :param control_frequencies: (dictionary of floats) a dictionary containing the amino acid nature frequencies of the
     control sets
@@ -226,7 +226,8 @@ def get_content_nature_enrichment(control_frequencies, interest_frequencies, dic
     :return: (list of list of strings) the content of the nature sheet ! Each sublist correspond to a row in the
     nature sheet of the enrichment_report.xlsx file
     """
-    content = [["amino_acid_nature", "frequencies_of_the_interest_set",
+    dic_padjust = {}
+    content = [[name, "frequencies_of_the_interest_set",
                 "average_frequencies_of_the_"+str(set_number)+"_sets", "IC_95_of_the_"+str(set_number)+"_sets",
                 "p_values_like", "FDR", "regulation_(p<=0.05)", "regulation(fdr<=0.05)"]]
     ic_95 = calculate_ic_95(control_frequencies)
@@ -239,11 +240,12 @@ def get_content_nature_enrichment(control_frequencies, interest_frequencies, dic
     for nature in dic_p_val.keys():
         regulation, regulation_fdr = check_regulation(interest_frequencies[nature], ic_95[nature],
                                                       dic_p_val[nature], p_adjust[i])
-        content.append([str(group_nature2complete_name[nature]), str(interest_frequencies[nature]),
+        content.append([str(nature), str(interest_frequencies[nature]),
                         str(np.mean(control_frequencies[nature])), str(ic_95[nature]), str(dic_p_val[nature]),
                         str(p_adjust[i]), str(regulation), str(regulation_fdr)])
+        dic_padjust[nature] = p_adjust[i]
         i += 1
-    return content
+    return content, dic_padjust
 
 
 def get_content_metabolism_enrichment(control_frequencies, interest_frequencies, dic_p_val, set_number):
@@ -279,11 +281,14 @@ def get_content_metabolism_enrichment(control_frequencies, interest_frequencies,
     return content
 
 
-def writing_enrichment_report_file(control_frequencies_codon, interest_frequencies_codon, dic_p_val_codon,
-                                   control_frequencies_aa, interest_frequencies_aa, dic_p_val_aa,
-                                   control_frequencies_nature, interest_frequencies_nature, dic_p_val_nature,
-                                   control_frequencies_metabolism,
-                                   interest_frequencies_metabolism, dic_p_val_metabolism, outpath, set_number):
+def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies, dic_p_val_codon,
+                                           control_frequencies_aa, aa_frequencies, dic_p_val_aa,
+                                           control_schain_frequencies, schain_frequency, dic_p_val_schain,
+                                           control_hydro_frequencies, hydro_frequency, dic_p_val_hydro,
+                                           control_charge_frequencies, charge_frequency, dic_p_val_charge,
+                                           control_polarity_frequencies, polarity_frequency, dic_p_val_polarity,
+                                           control_misc_frequencies, misc_frequency, dic_p_val_misc,
+                                           output_folder, set_number):
     """
 
     :param control_frequencies_codon:  (dictionary of floats) a dictionary containing the codon frequencies of the
@@ -318,31 +323,43 @@ def writing_enrichment_report_file(control_frequencies_codon, interest_frequenci
     :param set_number: (int) the number of control set that have been created
     :return:
     """
-    workbook = xlsxwriter.Workbook(outpath + "enrichment_report.xlsx")
+    workbook = xlsxwriter.Workbook(output_folder + "enrichment_report.xlsx")
     # setting the formats
     header_format = workbook.add_format({'bg_color': '#00DCFF', 'align': 'center', 'valign': 'vcenter', 'border': True})
     normal_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': True})
     # getting the sheet content
     codon_content, dic_padjust_codon = get_content_codon_enrichment(control_frequencies_codon,
-                                                                    interest_frequencies_codon, dic_p_val_codon,
+                                                                    codon_frequencies, dic_p_val_codon,
                                                                     set_number)
-    aa_content, dic_padjust_aa = get_content_amino_acid_enrichment(control_frequencies_aa, interest_frequencies_aa,
+    aa_content, dic_padjust_aa = get_content_amino_acid_enrichment(control_frequencies_aa, aa_frequencies,
                                                                    dic_p_val_aa, set_number)
-    nature_content = get_content_nature_enrichment(control_frequencies_nature, interest_frequencies_nature,
-                                                   dic_p_val_nature, set_number)
-    metabolism_content = get_content_metabolism_enrichment(control_frequencies_metabolism,
-                                                           interest_frequencies_metabolism, dic_p_val_metabolism,
-                                                           set_number)
+    schain_content, dic_padjust_schain = get_content_group_enrichment(control_schain_frequencies, schain_frequency, dic_p_val_schain,
+                                                                      set_number, "side_chain_nature")
+    hydro_content, dic_padjust_hydro = get_content_group_enrichment(control_hydro_frequencies, hydro_frequency, dic_p_val_hydro,
+                                                                      set_number, "hydric_relation")
+    charge_content, dic_padjust_charge = get_content_group_enrichment(control_charge_frequencies, charge_frequency, dic_p_val_charge,
+                                                                      set_number, "charge_group")
+    polarity_content, dic_padjust_polarity = get_content_group_enrichment(control_polarity_frequencies, polarity_frequency, dic_p_val_polarity,
+                                                                      set_number, "charge_group")
+    misc_content, dic_padjust_misc = get_content_group_enrichment(control_misc_frequencies, misc_frequency, dic_p_val_misc,
+                                                                      set_number, "charge_group")
+
     # creating the sheets...
     codon_sheet = workbook.add_worksheet("codon")
     aa_sheet = workbook.add_worksheet("amino_acid")
-    nature_sheet = workbook.add_worksheet("nature")
-    metabolism_sheet = workbook.add_worksheet("metabolism")
+    schain_sheet = workbook.add_worksheet("side_chain")
+    hydro_sheet = workbook.add_worksheet("hydric_relation")
+    charge_sheet = workbook.add_worksheet("charge_info")
+    polarity_sheet = workbook.add_worksheet("polarity_info")
+    misc_sheet = workbook.add_worksheet("misc_info")
 
     # filling the sheets...
     sheet_filler(codon_content, codon_sheet, header_format, normal_format)
     sheet_filler(aa_content, aa_sheet, header_format, normal_format)
-    sheet_filler(nature_content, nature_sheet, header_format, normal_format)
-    sheet_filler(metabolism_content, metabolism_sheet, header_format, normal_format)
+    sheet_filler(schain_content, schain_sheet, header_format, normal_format)
+    sheet_filler(hydro_content, hydro_sheet, header_format, normal_format)
+    sheet_filler(charge_content, charge_sheet, header_format, normal_format)
+    sheet_filler(polarity_content, polarity_sheet, header_format, normal_format)
+    sheet_filler(misc_content, misc_sheet, header_format, normal_format)
     workbook.close()
     return dic_padjust_codon, dic_padjust_aa
