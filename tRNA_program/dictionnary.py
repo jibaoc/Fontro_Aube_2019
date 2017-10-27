@@ -130,7 +130,7 @@ polarity_info2aa = {
 }
 
 misc2aa = {
-    "Low_complexity": ["S", "P", "G", "R", "K"],
+    "Low_complexity": ["S", "P", "G", "R", "K", "Y"],
     "Disorder_promoting": ["A", "R", "G", "Q", "S", "E", "K", "P"],
     "Disorder_promoting_s": ["S", "P", "G", "R"],
     "Order_promoting": ["W", "Y", "F", "I", "L", "V", "C", "N"],
