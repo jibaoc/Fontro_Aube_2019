@@ -288,6 +288,8 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
                                            control_charge_frequencies, charge_frequency, dic_p_val_charge,
                                            control_polarity_frequencies, polarity_frequency, dic_p_val_polarity,
                                            control_misc_frequencies, misc_frequency, dic_p_val_misc,
+                                           control_chimical_frequencies, chimical_frequency, dic_p_val_chimical,
+                                           control_structural_frequencies, structural_frequency, dic_p_val_structural,
                                            output_folder, set_number):
     """
 
@@ -340,9 +342,14 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
     charge_content, dic_padjust_charge = get_content_group_enrichment(control_charge_frequencies, charge_frequency, dic_p_val_charge,
                                                                       set_number, "charge_group")
     polarity_content, dic_padjust_polarity = get_content_group_enrichment(control_polarity_frequencies, polarity_frequency, dic_p_val_polarity,
-                                                                      set_number, "charge_group")
+                                                                      set_number, "polarity_group")
     misc_content, dic_padjust_misc = get_content_group_enrichment(control_misc_frequencies, misc_frequency, dic_p_val_misc,
-                                                                      set_number, "charge_group")
+                                                                      set_number, "misc_group")
+
+    chimical_content, dic_padjust_chimical = get_content_group_enrichment(control_chimical_frequencies, chimical_frequency, dic_p_val_chimical,
+                                                                      set_number, "chimical_group")
+    structural_content, dic_padjust_structural = get_content_group_enrichment(control_structural_frequencies, structural_frequency, dic_p_val_structural,
+                                                                      set_number, "structural_group")
 
     # creating the sheets...
     codon_sheet = workbook.add_worksheet("codon")
@@ -352,6 +359,8 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
     charge_sheet = workbook.add_worksheet("charge_info")
     polarity_sheet = workbook.add_worksheet("polarity_info")
     misc_sheet = workbook.add_worksheet("misc_info")
+    chimical_sheet = workbook.add_worksheet("chimical_info")
+    structural_sheet = workbook.add_worksheet("structural_info")
 
     # filling the sheets...
     sheet_filler(codon_content, codon_sheet, header_format, normal_format)
@@ -361,5 +370,7 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
     sheet_filler(charge_content, charge_sheet, header_format, normal_format)
     sheet_filler(polarity_content, polarity_sheet, header_format, normal_format)
     sheet_filler(misc_content, misc_sheet, header_format, normal_format)
+    sheet_filler(chimical_content, chimical_sheet, header_format, normal_format)
+    sheet_filler(structural_content, structural_sheet, header_format, normal_format)
     workbook.close()
     return dic_padjust_codon, dic_padjust_aa
