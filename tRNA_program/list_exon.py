@@ -2,6 +2,7 @@ from dictionnary import codon2aminoAcid
 from dictionnary import nature2amino_acid
 from dictionnary import amino_acid2nature
 from dictionnary import metabolism2amino_acid
+from dictionnary import dic_first_group
 
 class ListExon:
     """
@@ -296,6 +297,41 @@ class ListExon:
                             self.exon_list[i].amino_acid) / length_penalty
             dic[key] = dic[key] / c
         return dic
+
+    def protein_info_calculator(self, length_penalty, group):
+        """
+        weight the frequency of the nature of amino acids by the length of the exon and by the number of codons
+        """
+        c = []
+        if group == "1":
+            cur_dic = {"molecular_weight": 0., "aliphatic_index": 0.,
+                   "hydrophobicity(Eisenberg, 1984)": 0., "hydrophobicity(Kyte, 1982)": 0.,
+                   "hydrophobicity(Fauchere, 1983)": 0., "polarity(Zimmerman, 1968)": 0.,
+                   "Polarity (Grantham, 1974)": 0.}
+        else:
+            cur_dic = {"Alpha_helix_frequency(Nagano)": 0., "Alpha_helix(Deleage&Roux)": 0., "Alpha_helix(Levitt)": 0.,
+                       "Alpha_helix(Chou&Fasman)": 0., "Beta_structure_frequency(Nagano)": 0.,
+                       "Beta_sheet(Deleage&Roux)": 0., "Beta_sheet(Chou&Fasman)": 0., "Beta_turn(Deleage&Roux)": 0.,
+                       "Beta_turn(Levitt)": 0., "Beta_turn(Chou&Fasman)": 0., "Coil_propensity(Nagano)": 0.,
+                       "Coil(Deleage&Roux)": 0., "Transmenbrane_tendancy(Zhao)": 0., "AA_composition_of_mb_p": 0.,
+                       "transmenbrane_region_aa": 0., "composition_of_mb_p": 0.}
+        for i in range(len(self.exon_list)):
+            seq = str(self.exon_list[i].amino_acid).replace("[", "").replace("]", "").replace(",", "").replace("'", "").replace(" ", "").replace(
+                "*", "")
+            if len(seq) > 0:
+                cur_dic, c = dic_first_group(seq, cur_dic, length_penalty, c, group)
+
+        for key in cur_dic.keys():
+            if key in ["molecular_weight", "aliphatic_index", "hydrophobicity(Eisenberg, 1984)",
+                       "hydrophobicity(Kyte, 1982)", "hydrophobicity(Fauchere, 1983)", "composition_of_mb_p",
+                       "Transmenbrane_tendancy(Zhao)"]:
+
+                cur_dic[key] = round(cur_dic[key] / len(c), 4)
+            else:
+                cur_dic[key] = round(cur_dic[key] / sum(c), 4)
+
+
+        return cur_dic
 
     def amino_acid_frequency_calculator(self, length_penalty):
         """
