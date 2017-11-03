@@ -333,7 +333,6 @@ def dic_first_group(seq, dic, penalty_size, c_value, group):
         count = 0.
         for letter in seq:
             count += list_dic[i][letter]
-            count += list_dic[i][letter]
         if len(seq) > penalty_size:
             count /= len(seq)
             dic[list_name_dic[i]] += round(count,4)
