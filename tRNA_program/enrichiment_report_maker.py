@@ -222,6 +222,8 @@ def get_content_group_enrichment(control_frequencies, interest_frequencies, dic_
     of exons
     :param dic_p_val: (dictionary of floats a dictionary containing the p_values
     :param set_number: (int) the number of set to create
+    :param name: (string) : the name of the first column
+    :param list_key: (list of string) list of key contained in control_frequencies, interest_frequencies, dic_p_val
     :return: (list of list of strings) the content of the nature sheet ! Each sublist correspond to a row in the
     nature sheet of the enrichment_report.xlsx file
     """
@@ -260,6 +262,11 @@ def get_content_group_enrichment(control_frequencies, interest_frequencies, dic_
     return content, dic_padjust
 
 def create_iupac_dic(dic):
+    """
+
+    :param dic: (dictionary of float) must have the following keys : A, T, G, C
+    :return: a dictionary with ambiguous iupac nt
+    """
     res_iupac = {}
     res_iupac["Y"] = dic["C"] + dic["T"]
     res_iupac["R"] = dic["A"] + dic["G"]
@@ -270,6 +277,12 @@ def create_iupac_dic(dic):
     return res_iupac
 
 def sorted_string(a_dic, nt_string=None):
+    """
+    :param a_dic: (dictionary of float) - the key of the dictionary are nucleotides and their associated value their
+    frequencies in a sequence of interest
+    :param nt_string: (string) sequence of nucleotides that corresponds to frequencies in "a_dic" dictionary
+    :return: (list of tuple) ordered by the float value in the dictionary
+    """
     res_str = ""
     res_prop = ""
     list_tuple = sorted(a_dic.items(), key=lambda x: x[1], reverse=True)
@@ -285,6 +298,17 @@ def sorted_string(a_dic, nt_string=None):
     return res_str
 
 def get_group_nt_info(list_aa):
+    """
+
+    :param list_aa: (list of string) list of amino acid
+    :return: the number of nt in all the codon coded by all the amino acid in the list, their proportion and their
+    pondered proportion
+    example : list_aa = K, W
+    codon list = AAA, AAG, TGG:
+    count_str = A(5) - G(3) - T(1) - C(0) - Y(1) - R(8) - S(3) - W(6) - K(4) - M(5) -D....
+    count_prop = A(55.6) - G(33.3) - ....
+    count_pond = A((5./6 + 0./3) * 100 /2 = 41.6) - G(41.6)
+    """
     res = {"A":0, "T":0, "G":0, "C":0}
     ponderate = {"A":0., "T":0., "G":0., "C":0.}
     curstr = ""
@@ -295,7 +319,7 @@ def get_group_nt_info(list_aa):
         curstr += cur_codon
 
     for nt in ponderate.keys():
-        ponderate[nt] = round(ponderate[nt] * 100 / len(list_aa),1)
+        ponderate[nt] = round(ponderate[nt] * 100 / len(list_aa), 1)
 
     count_pond = sorted_string(ponderate)
 
@@ -327,6 +351,9 @@ def get_content_group_enrichment2(control_frequencies, interest_frequencies, dic
     of exons
     :param dic_p_val: (dictionary of floats a dictionary containing the p_values
     :param set_number: (int) the number of set to create
+    :param name: (string) : the name of the first column
+    :param reg_dic: (dictionary of list of string) : dictionary having keys corresponding to the group of interest and
+    a list associated to those keys corresponding to the amino acid aggregated in those groups
     :return: (list of list of strings) the content of the nature sheet ! Each sublist correspond to a row in the
     nature sheet of the enrichment_report.xlsx file
     """
@@ -366,7 +393,6 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
                                            control_nucleic_acid_frequencies, nucleic_acid_frequency, dic_p_val_nt,
                                            output_folder, set_number):
     """
-
     :param control_frequencies_codon:  (dictionary of floats) a dictionary containing the codon frequencies of the
     control sets
     :param interest_frequencies_codon:  (dictionary of floats) a dictionary frequency of each codon in the user set of
@@ -380,22 +406,55 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
     exons
     :param dic_p_val_aa: (dictionary of floats) a dictionary containing the p_values indicating the significance of
     the enrichment for each amino acid
-    :param control_frequencies_nature: (dictionary of floats) a dictionary containing the amino_acid nature frequencies
-    of the control sets
-    :param interest_frequencies_nature: (dictionary of floats) a dictionary frequency of each amino acid nature in the
-    user set of exons
-    :param dic_p_val_nature: (dictionary of floats) a dictionary containing the p_values indicating the significance of
-    the enrichment for each amino acid nature
-    :param control_frequencies_metabolism: (dictionary of floats) a dictionary frequency of each amino acid metabolism
-    in the user set of exons : 'Metabolism' here corresponds to the origin metabolism of
-    amino acids in the user set of exons
-    :param interest_frequencies_metabolism: (dictionary of floats) a dictionary frequency of each amino acid metabolism
-    in the user set of exons : 'Metabolism' here corresponds to the origin metabolism of
-    amino acids in the user set of exons
-    :param dic_p_val_metabolism: (dictionary of floats) a dictionary containing the p_values indicating the significance
-     of the enrichment for each amino acid metabolism.'Metabolism' here corresponds to the origin metabolism of
-    amino acids in the user set of exons
-    :param outpath: (string) the folder where the report enrichment_report.xlsx will be created
+    :param control_schain_frequencies: (dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by their side chain properties) of the control sets
+    :param schain_frequency:(dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by their side chain properties) in the user set of exons
+    :param dic_p_val_schain:(dictionary of floats) a dictionary containing the p_values indicating the significance of
+    the enrichment for each sets of amino acid (grouped by their side chain properties)
+    :param control_hydro_frequencies:(dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by their hydrophilic/phobic properties) of the control sets
+    :param hydro_frequency:(dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by their hydrophilic/phobic properties) in the user set of exons
+    :param dic_p_val_hydro:(dictionary of floats) a dictionary containing the p_values indicating the significance of
+    the enrichment for each sets of amino acid (grouped by their hydrophilic/phobic properties)
+    :param control_charge_frequencies:(dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by their charge properties) of the control sets
+    :param charge_frequency:(dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by their charge properties) in the user set of exons
+    :param dic_p_val_charge:(dictionary of floats) a dictionary containing the p_values indicating the significance of
+    the enrichment for each sets of amino acid (grouped by their charge properties)
+    :param control_polarity_frequencies:(dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by their polarity properties) of the control sets
+    :param polarity_frequency: (dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by their polarity properties) in the user set of exons
+    :param dic_p_val_polarity:(dictionary of floats) a dictionary containing the p_values indicating the significance of
+    the enrichment for each sets of amino acid (grouped by their polarity properties)
+    :param control_misc_frequencies:(dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by miscellaneous properties) of the control sets
+    :param misc_frequency:(dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by miscellaneous properties) in the user set of exons
+    :param dic_p_val_misc:(dictionary of floats) a dictionary containing the p_values indicating the significance of
+    the enrichment for each sets of amino acid (grouped by miscellaneous properties)
+    :param control_chimical_frequencies:(dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by their chemical properties) of the control sets
+    :param chimical_frequency:(dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by their chemical properties) in the user set of exons
+    :param dic_p_val_chimical: (dictionary of floats) a dictionary containing the p_values indicating the significance of
+    the enrichment for each sets of amino acid (grouped by their chemical properties)
+    :param control_structural_frequencies: (dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by their structural properties) of the control sets
+    :param structural_frequency:(dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by their chemical properties) in the user set of exons
+    :param dic_p_val_structural:(dictionary of floats) a dictionary containing the frequencies of different
+    sets of amino acid (grouped by their structural properties) in the user set of exons
+    :param control_nucleic_acid_frequencies:(dictionary of floats) a dictionary containing the  nucleotides frequencies
+     of exons of the control sets
+    :param nucleic_acid_frequency:(dictionary of floats) a dictionary containing the  nucleotides frequencies
+     of exons of the user set of exons
+    :param dic_p_val_nt:  (dictionary of floats) a dictionary containing the p_values indicating the significance of
+    the enrichment for each nucleotides of the user set of exons
+    :param output_folder: (string) the folder where the report enrichment_report.xlsx will be created
     :param set_number: (int) the number of control set that have been created
     :return:
     """
