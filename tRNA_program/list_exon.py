@@ -298,6 +298,31 @@ class ListExon:
             dic[key] = dic[key] / c
         return dic
 
+    def nucleic_acid_calculator(self, length_penalty):
+        """
+        weight the frequency of the nature of amino acids by the length of the exon and by the number of codons
+        """
+        dic = {"A":0., "G":0., "C":0., "T":0.}
+        for key in dic.keys():
+            c = 0.
+            for i in range(len(self.exon_list)):
+                if len(self.exon_list[i].cds_sequence) > length_penalty - 1:
+                    c += 1.
+                    dic[key] += float(self.exon_list[i].cds_sequence.count(key)) / len(self.exon_list[i].cds_sequence)
+                else:
+                    c += float(len(self.exon_list[i].cds_sequence)) / length_penalty
+                    dic[key] += float(self.exon_list[i].cds_sequence.count(key)) / len(self.exon_list[i].cds_sequence) * len(
+                        self.exon_list[i].cds_sequence) / length_penalty
+
+            dic[key] = dic[key] / c
+        dic["Y"] = dic["C"] + dic["T"] ; dic["R"] = dic["A"] + dic["G"] ; dic["W"] = dic["A"] + dic["T"]
+        dic["S"] = dic["G"] + dic["C"] ; dic["K"] = dic["T"] + dic["G"] ; dic["M"] = dic["C"] + dic["A"]
+        dic["D"] = dic["A"] + dic["G"] + dic["T"] ; dic["V"] = dic["A"] + dic["C"] + dic["G"]
+        dic["H"] = dic["A"] + dic["C"] + dic["T"]; dic["B"] = dic["T"] + dic["C"] + dic["G"]
+
+
+        return dic
+
     def protein_info_calculator(self, length_penalty, group):
         """
         weight the frequency of the nature of amino acids by the length of the exon and by the number of codons
