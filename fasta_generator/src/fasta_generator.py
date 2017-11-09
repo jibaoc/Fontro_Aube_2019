@@ -28,12 +28,17 @@ def sequence_generator(length, a_prop, t_prop, c_prop, g_prop):
             seq += new_seq[random.randint(0, len(new_seq)-1)]
 
     rseq = "".join(random.sample(seq, len(seq)))
+    fseq = ""
+    i = 0
+    while i < len(rseq):
+        fseq += rseq[i:i+70] + "\r"
+        i += 70
 
     ap = round(float(rseq.count("A")) / len(rseq), 2)
     cp = round(float(rseq.count("C")) / len(rseq), 2)
     gp = round(float(rseq.count("G")) / len(rseq), 2)
     tp = round(float(rseq.count("T")) / len(rseq), 2)
-    return rseq, ap, cp, gp, tp
+    return fseq, ap, cp, gp, tp
 
 
 def flexible_sequence_generator(length, a_prop, t_prop, c_prop, g_prop):
@@ -52,15 +57,20 @@ def flexible_sequence_generator(length, a_prop, t_prop, c_prop, g_prop):
     while len(seq) != length:
 
         seq += new_seq[random.randint(0, len(new_seq)-1)]
+    fseq = ""
+    i = 0
+    while i < len(seq):
+        fseq += seq[i:i+70] + "\r"
+        i += 70
 
     ap = round(float(seq.count("A")) / len(seq), 2)
     cp = round(float(seq.count("C")) / len(seq), 2)
     gp = round(float(seq.count("G")) / len(seq), 2)
     tp = round(float(seq.count("T")) / len(seq), 2)
-    return seq, ap, cp, gp, tp
+    return fseq, ap, cp, gp, tp
 
 
-def header_generator(length, a_prop, t_prop, c_prop, g_prop, num_seq):
+def header_generator(length, a_prop, c_prop, g_prop, t_prop, num_seq):
     """
     :param length: (int) the length of the sequence we will create
     :param a_prop: (float) proportion of A in the sequence we will create
@@ -168,7 +178,7 @@ def handling_nt_proportion(prop_A, prop_T, prop_C, prop_G):
         for i in range(len(none_list)):
             temp[none_list[i]] = 0
         for i in range(len(none_list)):
-            prop[none_list[i]] = (1 - sum(temp)) / len(none_list)
+            prop[none_list[i]] = (1. - sum(temp)) / len(none_list)
         return prop[0], prop[1], prop[2], prop[3]
 
 
@@ -256,7 +266,7 @@ def launcher():
 
     if args.flexible == "True":
         args.flexible = True
-    elif args.flexible == "False":
+    elif args.flexible == "False" or args.flexible is False:
         args.flexible = False
     else:
         print "WARNING : unrogonized boolean value for flexible argument"
