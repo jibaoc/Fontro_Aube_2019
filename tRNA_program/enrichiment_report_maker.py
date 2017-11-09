@@ -236,29 +236,31 @@ def get_content_group_enrichment(control_frequencies, interest_frequencies, dic_
     for nature in dic_p_val.keys():
         p_vals.append(dic_p_val[nature])
     rstats = importr('stats')
-    p_adjust = rstats.p_adjust(FloatVector(p_vals), method="BH")
-    i = 0
+    p_adjust = list(rstats.p_adjust(FloatVector(p_vals), method="BH"))
+    padjust = {}
+    i=0
+    for nature in dic_p_val.keys():
+        padjust[nature] = p_adjust[i]
+        i += 1
     if list_key is None:
         for nature in dic_p_val.keys():
             regulation, regulation_fdr = check_regulation(interest_frequencies[nature], ic_95[nature],
-                                                      dic_p_val[nature], p_adjust[i])
+                                                      dic_p_val[nature], padjust[nature])
             content.append([str(nature), str(interest_frequencies[nature]),
                         str(np.mean(control_frequencies[nature])), str(ic_95[nature]), str(dic_p_val[nature]),
-                        str(p_adjust[i]), str(regulation), str(regulation_fdr)])
-            dic_padjust[nature] = p_adjust[i]
-            i += 1
+                        str(padjust[nature]), str(regulation), str(regulation_fdr)])
+
+
     else:
         for nature in list_key:
             if nature == " ":
                 content.append([" " for i in range(7)])
             else:
-                regulation, regulation_fdr = check_regulation(interest_frequencies[nature], ic_95[nature],
-                                                      dic_p_val[nature], p_adjust[i])
+                regulation, regulation_fdr = check_regulation(interest_frequencies[nature], ic_95[nature], dic_p_val[nature], padjust[nature])
                 content.append([str(nature), str(interest_frequencies[nature]),
                         str(np.mean(control_frequencies[nature])), str(ic_95[nature]), str(dic_p_val[nature]),
-                        str(p_adjust[i]), str(regulation), str(regulation_fdr)])
-                dic_padjust[nature] = p_adjust[i]
-            i += 1
+                        str(padjust[nature]), str(regulation), str(regulation_fdr)])
+
     return content, dic_padjust
 
 def create_iupac_dic(dic):
@@ -391,6 +393,7 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
                                            control_chimical_frequencies, chimical_frequency, dic_p_val_chimical,
                                            control_structural_frequencies, structural_frequency, dic_p_val_structural,
                                            control_nucleic_acid_frequencies, nucleic_acid_frequency, dic_p_val_nt,
+                                           control_dnt_frequencies, dnt_frequency, dic_p_val_dnt,
                                            output_folder, set_number):
     """
     :param control_frequencies_codon:  (dictionary of floats) a dictionary containing the codon frequencies of the
@@ -491,6 +494,26 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
                                                                       dic_p_val_nt,
                                                                       set_number, "nt_info", nt_list)
 
+    iu = {"Y": ["C", "T"], "R": ["A", "G"], "W": ["A", "T"], "S": ["G", "C"], "K": ["T", "G"],
+          "M": ["C", "A"]}
+    dnt_list = []
+    for k1 in iu.keys():
+        for k2 in iu.keys():
+            dnt_list.append(k1 + k2)
+            dnt_list.append(iu[k1][0] + iu[k2][0])
+            dnt_list.append(iu[k1][0] + iu[k2][1])
+            dnt_list.append(iu[k1][1] + iu[k2][0])
+            dnt_list.append(iu[k1][1] + iu[k2][1])
+            dnt_list.append(" ")
+
+
+
+    dnt_content, dic_padjust_dnt = get_content_group_enrichment(control_dnt_frequencies,
+                                                                      dnt_frequency,
+                                                                      dic_p_val_dnt,
+                                                                      set_number, "dnt_info", dnt_list)
+
+
     # creating the sheets...
     codon_sheet = workbook.add_worksheet("codon")
     aa_sheet = workbook.add_worksheet("amino_acid")
@@ -502,6 +525,7 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
     chimical_sheet = workbook.add_worksheet("chimical_info")
     structural_sheet = workbook.add_worksheet("structural_info")
     nt_sheet = workbook.add_worksheet("nt_info")
+    dnt_sheet = workbook.add_worksheet("dnt_info")
 
     # filling the sheets...
     sheet_filler(codon_content, codon_sheet, header_format, normal_format)
@@ -514,6 +538,7 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
     sheet_filler(chimical_content, chimical_sheet, header_format, normal_format)
     sheet_filler(structural_content, structural_sheet, header_format, normal_format)
     sheet_filler(nt_content, nt_sheet, header_format, normal_format)
+    sheet_filler(dnt_content, dnt_sheet, header_format, normal_format)
 
     workbook.close()
     return dic_padjust_codon, dic_padjust_aa
