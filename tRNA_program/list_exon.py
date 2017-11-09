@@ -298,7 +298,7 @@ class ListExon:
             dic[key] = dic[key] / c
         return dic
 
-    def nucleic_acid_calculator(self, length_penalty):
+    def nucleic_acid_calculator(self):
         """
         weight the frequency of the nucleotides by the length of the exon
         :param length_penalty: (int) size below which an exon will be penalized by its size
@@ -306,17 +306,11 @@ class ListExon:
         """
         dic = {"A": 0., "G": 0., "C": 0., "T": 0.}
         for key in dic.keys():
-            c = 0.
             for i in range(len(self.exon_list)):
-                if len(self.exon_list[i].cds_sequence) > length_penalty - 1:
-                    c += 1.
+                if len(self.exon_list[i].cds_sequence) > 0:
                     dic[key] += float(self.exon_list[i].cds_sequence.count(key)) / len(self.exon_list[i].cds_sequence)
-                else:
-                    c += float(len(self.exon_list[i].cds_sequence)) / length_penalty
-                    dic[key] += float(self.exon_list[i].cds_sequence.count(key)) / len(self.exon_list[i].cds_sequence) \
-                                * len(self.exon_list[i].cds_sequence) / length_penalty
 
-            dic[key] = dic[key] / c
+            dic[key] = dic[key] / len(self.exon_list)
         dic["Y"] = dic["C"] + dic["T"]
         dic["R"] = dic["A"] + dic["G"]
         dic["W"] = dic["A"] + dic["T"]
@@ -327,7 +321,27 @@ class ListExon:
         dic["V"] = dic["A"] + dic["C"] + dic["G"]
         dic["H"] = dic["A"] + dic["C"] + dic["T"]
         dic["B"] = dic["T"] + dic["C"] + dic["G"]
+        return dic
 
+    def dinucleotide_calculator(self):
+        dic = {"AA":0., "AT":0., "AG":0., "AC":0., "TA":0., "TT":0., "TG":0., "TC":0.,
+                   "GA":0., "GT":0., "GG":0., "GC":0., "CA":0., "CT":0., "CG":0., "CC":0.}
+        for i in range(len(self.exon_list)):
+            cur = {"AA":0., "AT":0., "AG":0., "AC":0., "TA":0., "TT":0., "TG":0., "TC":0.,
+                   "GA":0., "GT":0., "GG":0., "GC":0., "CA":0., "CT":0., "CG":0., "CC":0.}
+            if len(self.exon_list[i].cds_sequence) >1:
+                for j in range(len(self.exon_list[i].cds_sequence) - 1):
+                    cur[self.exon_list[i].cds_sequence[j:j+2]] += 1
+                for key in dic.keys():
+                    dic[key] += float(cur[key]) / (len(self.exon_list[i].cds_sequence) - 1)
+        for key in dic.keys():
+            dic[key] = dic[key] / len(self.exon_list)
+
+        iu = {"Y": ["C", "T"], "R": ["A", "G"], "W": ["A", "T"], "S": ["G", "C"], "K": ["T", "G"],
+                     "M": ["C", "A"]}
+        for k1 in iu.keys():
+            for k2 in iu.keys():
+                dic[k1+k2] = dic[iu[k1][0]+iu[k2][0]] + dic[iu[k1][0]+iu[k2][1]] + dic[iu[k1][1]+iu[k2][0]] + dic[iu[k1][1]+iu[k2][1]]
         return dic
 
     def protein_info_calculator(self, length_penalty, group):
