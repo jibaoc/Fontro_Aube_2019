@@ -5,15 +5,15 @@ from dictionnary import amino_acid2codon  # Links each amino_acid to its specifi
 # a non essential or a conditionally essential amino acid
 
 
-
 class ExonClass:
     """
     A class corresponding to an exon. This class allows to extract easily information about an exon
     """
 
-    def __init__(self, init_tuple, input_name, input_chromosome_number):
+    def __init__(self, init_list, is_fasta=False):
         """
-        :param init_tuple: a tuple containing many information about the exon in the order specified below :
+        :param init_list: (tuple of tuple, string, string) OR (tuple of 2 string), the first tuple containing many
+        information about the exon in the order specified below :
         (gene_id : the fasterDB id of the exon's gene, exon_number : the exon position within the gene,
         start_on_chromosome : the chromosomal coordinates  where the exon start,
         end_on_chromosome : the chromosomal coordinates where the exon stop,
@@ -21,35 +21,53 @@ class ExonClass:
         cds_end_on_chromosome : the chromosomal coordinates where the cds of exon stop,
         exon_type : the type of the exon (ACE, FCE, LCE, CCE))
         strand  : strand of the exon
+        the first string contains the name of the input and the second tuple, the chromosome number
         """
-
-        self.exon_name = str(input_name)
-        self.chr = str(input_chromosome_number)
-        self.gene_id = str(init_tuple[0])
-        self.exon_number = str(init_tuple[1])
-        self.exon_start = init_tuple[2]
-        self.exon_end = init_tuple[3]
-        self.cds_start = init_tuple[4]
-        self.cds_end = init_tuple[5]
-        self.exon_type = str(init_tuple[6])
-        self.strand = str(init_tuple[7])
-
         # the following attributes will be filled afterward
 
-        self.matching = list()  # a list that will contain the matching status : if the input coordinates given by
-        # the user match with one exon the matching status is : "single", otherwise it's multiple
-        # the list will also be filled by the input_coverage_on_exon and the exon_coverage_on_input
-        self.gene_name = str()
-        self.genomic_sequence = str()
-        self.cds_sequence = str()
-        self.offsets = list()
+        if not is_fasta:
+            init_tuple = init_list[0]
+            self.exon_name = str(init_list[1])
+            self.chr = str(init_list[2])
+            self.gene_id = str(init_tuple[0])
+            self.exon_number = str(init_tuple[1])
+            self.exon_start = init_tuple[2]
+            self.exon_end = init_tuple[3]
+            self.cds_start = init_tuple[4]
+            self.cds_end = init_tuple[5]
+            self.exon_type = str(init_tuple[6])
+            self.strand = str(init_tuple[7])
+            self.matching = list()  # a list that will contain the matching status : if the input coordinates given by
+            # the user match with one exon the matching status is : "single", otherwise it's multiple
+            # the list will also be filled by the input_coverage_on_exon and the exon_coverage_on_input
+            self.gene_name = str()
+            self.genomic_sequence = str()
+            self.cds_sequence = str()
+            self.offsets = list()
+
+        else:
+            self.exon_name = init_list[0]
+            self.chr = "NA"
+            self.gene_id = "NA"
+            self.exon_number = "NA"
+            self.exon_start = 0
+            self.exon_end = 0
+            self.cds_start = 0
+            self.cds_end = 0
+            self.exon_type = "NA"
+            self.strand = "NA"
+            self.matching = ["NA", "NA", "NA"]  # a list that will contain the matching status : if the input
+            # coordinates given by the user match with one exon the matching status is : "single", otherwise it's
+            # multiple the list will also be filled by the input_coverage_on_exon and the exon_coverage_on_input
+            self.gene_name = "NA"
+            self.genomic_sequence = init_list[1]
+            self.cds_sequence = init_list[1]
+            self.offsets = [0, 0]
+
         self.peptide_sequence = str()
         self.codon = list()
         self.anticodon = list()
         self.amino_acid = list()
-        self.nature = list()
-        self.importance = list()  # says if a codon code for an essential, conditionally essential or non essential aa
-        self.metabolism = list()  # gives the origin of each amino acid of the sequence
         self.possible_codon = list()  # codons that codes for the same amino acid
 
     def find_matching_status(self, counter):
