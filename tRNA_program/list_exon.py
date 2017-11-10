@@ -1,8 +1,7 @@
 from dictionnary import codon2aminoAcid
-from dictionnary import nature2amino_acid
 from dictionnary import amino_acid2nature
-from dictionnary import metabolism2amino_acid
 from dictionnary import dic_first_group
+
 
 class ListExon:
     """
@@ -23,7 +22,7 @@ class ListExon:
     def get_content_mapping_sheet(self):
         """
         :return: A list of list of strings : each sublist corresponds to a row that will be written in the mapping sheet
-        of the request_results.xlsx file
+        of the query_results.xlsx file
         """
         content = [["Name", "Matching_status", "Gene", "Exon", "Chromosome", "Exon_start", "Exon_end",
                     "Input_coverage_on_exon", "Exon_coverage_on_input", "CDS_start", "CDS_end", "Exon_type"]]
@@ -39,7 +38,7 @@ class ListExon:
     def get_content_sequence_sheet(self):
         """
         :return: A list of list of strings : each sublist corresponds to a row that will be written in the sequence
-        sheet of the request_results.xlsx file
+        sheet of the query_results.xlsx file
         """
         content = [["Name", " Genomic_sequence", "CDS_genomic_sequence", "CDS_peptide_sequence", "Reading_frame"]]
         for exon in self.exon_list:
@@ -54,7 +53,7 @@ class ListExon:
     def get_content_feature_sheet(self):
         """
         :return: A list of list of strings : each sublist corresponds to a row that will be written in the feature sheet
-        of the request_results.xlsx file
+        of the query_results.xlsx file
         """
         content = []
         j = 0
@@ -75,10 +74,6 @@ class ListExon:
                 row = ["Amino_acid"]
                 for i in range(len(self.exon_list[j].amino_acid)):
                     row.append(str(self.exon_list[j].amino_acid[i]))
-                content.append(row)
-                row = ["Amino_acid_nature"]
-                for i in range(len(self.exon_list[j].nature)):
-                    row.append(str(self.exon_list[j].nature[i]))
                 content.append(row)
                 row = ["Codon_with_same_aa"]
                 for i in range(len(self.exon_list[j].possible_codon)):
@@ -182,8 +177,8 @@ class ListExon:
     def weighted_frequency_calculator(self, length_penalty):
         """
         weight the frequency of a codon by the length of the exon and by the number of codon
-        for instance the set of exons : ATGCCA  ATGATG  GAGCCA CTG
-        will have an ATG frequency of ATG = (0.5 + 1 + 0 + 0)/4 = 0.375
+        for instance the set of exons : ATGCCA  ATGATG  GAGCCA CTG with a penalty size of 6
+        will have an ATG frequency of ATG = (0.5 + 1 + 0 + 0)/(1 + 1 + 1 + 3./6)
         """
         dic = {}
         for key in codon2aminoAcid.keys():
@@ -241,32 +236,11 @@ class ListExon:
                     dic[key].append(float(seq.count(key)) / len(seq) * 100)
         return dic
 
-    def amino_acid_nature_frequency_calculator(self, length_penalty):
-        """
-        weight the frequency of the nature of amino acids by the length of the exon and by the number of codons
-        """
-        dic = {}
-        for key in nature2amino_acid.keys():
-            dic[key] = 0.
-            c = 0.
-            for i in range(len(self.exon_list)):
-                if len(self.exon_list[i].amino_acid) > 0:
-                    count = 0
-                    for aa in nature2amino_acid[key]:
-                        count += self.exon_list[i].amino_acid.count(aa)
-                    if len(self.exon_list[i].amino_acid) > length_penalty - 1:
-                        c += 1.
-                        dic[key] += float(count) / len(self.exon_list[i].amino_acid)
-                    else:
-                        c += float(len(self.exon_list[i].amino_acid)) / length_penalty
-                        dic[key] += float(count) / len(self.exon_list[i].amino_acid) * len(
-                            self.exon_list[i].amino_acid) / length_penalty
-            dic[key] = dic[key] / c
-        return dic
-
     def amino_acid_info_frequency_calculator(self, length_penalty, calcul):
         """
-        weight the frequency of the nature of amino acids by the length of the exon and by the number of codons
+        :param length_penalty: (int) size int codon below which an exon is considered as small
+        :param calcul: (string) the type of group creation we want to make
+        :return: A dictionary containing the weighted frequencies of different group of amino acid
         """
         module_dic = __import__('dictionnary')
         if calcul == "side_chain":
@@ -284,25 +258,25 @@ class ListExon:
             dic[key] = 0.
             c = 0.
             for i in range(len(self.exon_list)):
-                if len(self.exon_list[i].amino_acid) > 0:
+                sequence = "".join(self.exon_list[i].amino_acid).replace("*", "")
+                if len(sequence) > 0:
                     count = 0
                     for aa in cur_dic[key]:
-                        count += self.exon_list[i].amino_acid.count(aa)
-                    if len(self.exon_list[i].amino_acid) > length_penalty - 1:
+                        count += sequence.count(aa)
+                    if len(sequence) > length_penalty - 1:
                         c += 1.
-                        dic[key] += float(count) / len(self.exon_list[i].amino_acid)
+                        dic[key] += float(count) / len(sequence)
                     else:
-                        c += float(len(self.exon_list[i].amino_acid)) / length_penalty
-                        dic[key] += float(count) / len(self.exon_list[i].amino_acid) * len(
-                            self.exon_list[i].amino_acid) / length_penalty
+                        c += float(len(sequence)) / length_penalty
+                        dic[key] += float(count) / len(sequence) * len(
+                            sequence) / length_penalty
             dic[key] = dic[key] / c
         return dic
 
     def nucleic_acid_calculator(self):
         """
-        weight the frequency of the nucleotides by the length of the exon
-        :param length_penalty: (int) size below which an exon will be penalized by its size
-        :return: a dictionary with the weighted frequency of every nucleotides in the sets of exons of interest
+        :return: (dictionary) a dictionary containing the frequencies of nucleotides (iupac code) (A, T, C, G, W, S
+        Y, R, K, M)
         """
         dic = {"A": 0., "G": 0., "C": 0., "T": 0.}
         for key in dic.keys():
@@ -310,7 +284,7 @@ class ListExon:
                 if len(self.exon_list[i].cds_sequence) > 0:
                     dic[key] += float(self.exon_list[i].cds_sequence.count(key)) / len(self.exon_list[i].cds_sequence)
 
-            dic[key] = dic[key] / len(self.exon_list)
+            dic[key] /= len(self.exon_list)
         dic["Y"] = dic["C"] + dic["T"]
         dic["R"] = dic["A"] + dic["G"]
         dic["W"] = dic["A"] + dic["T"]
@@ -324,24 +298,28 @@ class ListExon:
         return dic
 
     def dinucleotide_calculator(self):
-        dic = {"AA":0., "AT":0., "AG":0., "AC":0., "TA":0., "TT":0., "TG":0., "TC":0.,
-                   "GA":0., "GT":0., "GG":0., "GC":0., "CA":0., "CT":0., "CG":0., "CC":0.}
+        """
+        :return: (dictionary) a dictionary containing the frequency of every possible di-nucleotides
+        """
+        dic = {"AA": 0., "AT": 0., "AG": 0., "AC": 0., "TA": 0., "TT": 0., "TG": 0., "TC": 0.,
+                   "GA": 0., "GT": 0., "GG": 0., "GC": 0., "CA": 0., "CT": 0., "CG": 0., "CC": 0.}
         for i in range(len(self.exon_list)):
-            cur = {"AA":0., "AT":0., "AG":0., "AC":0., "TA":0., "TT":0., "TG":0., "TC":0.,
-                   "GA":0., "GT":0., "GG":0., "GC":0., "CA":0., "CT":0., "CG":0., "CC":0.}
-            if len(self.exon_list[i].cds_sequence) >1:
+            cur = {"AA": 0., "AT": 0., "AG": 0., "AC": 0., "TA": 0., "TT": 0., "TG": 0., "TC": 0.,
+                   "GA": 0., "GT": 0., "GG": 0., "GC": 0., "CA": 0., "CT": 0., "CG": 0., "CC": 0.}
+            if len(self.exon_list[i].cds_sequence) > 1:
                 for j in range(len(self.exon_list[i].cds_sequence) - 1):
                     cur[self.exon_list[i].cds_sequence[j:j+2]] += 1
                 for key in dic.keys():
                     dic[key] += float(cur[key]) / (len(self.exon_list[i].cds_sequence) - 1)
         for key in dic.keys():
-            dic[key] = dic[key] / len(self.exon_list)
+            dic[key] /= len(self.exon_list)
 
         iu = {"Y": ["C", "T"], "R": ["A", "G"], "W": ["A", "T"], "S": ["G", "C"], "K": ["T", "G"],
                      "M": ["C", "A"]}
         for k1 in iu.keys():
             for k2 in iu.keys():
-                dic[k1+k2] = dic[iu[k1][0]+iu[k2][0]] + dic[iu[k1][0]+iu[k2][1]] + dic[iu[k1][1]+iu[k2][0]] + dic[iu[k1][1]+iu[k2][1]]
+                dic[k1+k2] = dic[iu[k1][0]+iu[k2][0]] + dic[iu[k1][0]+iu[k2][1]] + dic[iu[k1][1]+iu[k2][0]] + \
+                             dic[iu[k1][1]+iu[k2][1]]
         return dic
 
     def protein_info_calculator(self, length_penalty, group):
@@ -383,9 +361,10 @@ class ListExon:
 
     def amino_acid_frequency_calculator(self, length_penalty):
         """
+        :param length_penalty: (int) size below which an exon will be penalized by its size
         weight the frequency of an amino acid by the length of the exon and by the number of amino acid
-        for instance the set of codon : MG  MM  QR S
-        will have an M frequency of M = (0.5 + 1 + 0 + 0)/4 = 0.375
+        for instance the set of codon : MG  MM  QR S and a penalty_size = 2
+        will have an M frequency of M = (0.5 + 1 + 0 + 0 * 1./2)/(1 + 1 + 1 + 1./2)
         """
         dic = {}
         for key in amino_acid2nature.keys():
@@ -399,30 +378,6 @@ class ListExon:
                     else:
                         c += float(len(self.exon_list[i].amino_acid)) / length_penalty
                         dic[key] += float(self.exon_list[i].amino_acid.count(key)) / len(
-                            self.exon_list[i].amino_acid) * len(self.exon_list[i].amino_acid) / length_penalty
-            dic[key] = dic[key] / c
-        return dic
-
-    def amino_acid_metabolism_frequency_calculator(self, length_penalty):
-        """
-        weight the frequency of the amino acids according to their origin (TCA_cycle, glycolyse, pentoses)
-         (essential, non_essential, conditionally essential) by the length of the exon and by the number of amino acid
-        """
-        dic = {}
-        for key in metabolism2amino_acid.keys():
-            dic[key] = 0.
-            c = 0.
-            for i in range(len(self.exon_list)):
-                if len(self.exon_list[i].amino_acid) > 0:
-                    count = 0
-                    for aa in metabolism2amino_acid[key]:
-                        count += self.exon_list[i].amino_acid.count(aa)
-                    if len(self.exon_list[i].amino_acid) > length_penalty - 1:
-                        c += 1.
-                        dic[key] += float(count) / len(self.exon_list[i].amino_acid)
-                    else:
-                        c += float(len(self.exon_list[i].amino_acid)) / length_penalty
-                        dic[key] += float(count) / len(
                             self.exon_list[i].amino_acid) * len(self.exon_list[i].amino_acid) / length_penalty
             dic[key] = dic[key] / c
         return dic
@@ -924,6 +879,7 @@ def sequence_plus_analyser(list_of_codon):
     for type_nt in res_dic.keys():
         res_dic[type_nt][1] = round((float(res_dic[type_nt][0]) / len(list_of_codon)) * 100, 3)
     return res_dic
+
 
 def sequence_all_analyser(list_of_codon, list_type_nt):
     """
