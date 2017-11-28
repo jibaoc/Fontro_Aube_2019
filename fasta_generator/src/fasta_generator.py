@@ -6,6 +6,138 @@ import random
 import argparse
 import os
 from math import floor
+import copy
+from operator import itemgetter
+
+list_name = ["AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT", "GA", "GC", "GG", "GT",
+             "TA", "TC", "TT", "TG"]
+
+
+def next_dnt(my_dnt, last_nt):
+
+    len_dic = {"A" : len(my_dnt["A"]), "C" : len(my_dnt["C"]), "G": len(my_dnt["G"]), "T" : len(my_dnt["T"])}
+    sorted_ld = sorted(len_dic.items(), key=itemgetter(1), reverse=True)
+    if len_dic[last_nt] > 0:
+        next_nt = None
+        ct = 0
+        while next_nt is None and ct <4:
+            cut_nt = last_nt + sorted_ld[ct][0]
+            if cut_nt in my_dnt[cut_nt[0]]:
+                next_nt = cut_nt
+                del (my_dnt[next_nt[0]][my_dnt[next_nt[0]].index(next_nt)])
+                return next_nt
+        if next_nt is None:
+            print ("Error - the next_nt cannot be found")
+    elif len_dic[last_nt] == 0:
+        if sorted_ld[0][1] == 0:
+            return "Done"
+        else:
+            cur_dnt = sorted_ld[0][0]
+            next_nt = None
+            ct = 0
+            while next_nt is None and ct < 4:
+                cut_nt = last_nt + sorted_ld[ct][0]
+                if cut_nt in my_dnt[cut_nt[0]]:
+                    next_nt = cut_nt
+                    del (my_dnt[next_nt[0]][my_dnt[next_nt[0]].index(next_nt)])
+                    return next_nt
+            if next_nt is None:
+                print ("Error - the next_nt cannot be found")
+
+def next_dnt2(my_dnt, last_nt):
+    len_dic = {"A" : len(my_dnt["A"]), "C" : len(my_dnt["C"]), "G": len(my_dnt["G"]), "T" : len(my_dnt["T"])}
+    sorted_ld = sorted(len_dic.items(), key=itemgetter(1), reverse=True)
+    if len_dic[last_nt] > 0:
+        next_nt = my_dnt[last_nt][random.randint(0, len(my_dnt[last_nt])-1)]
+        del (my_dnt[next_nt[0]][my_dnt[next_nt[0]].index(next_nt)])
+        return next_nt[1]
+    elif len_dic[last_nt] == 0:
+        if sorted_ld[0][1] == 0:
+            return "Done"
+        else:
+            list_of_remaning_nt = []
+            for i in  range(len(sorted_ld)):
+                if sorted_ld[0][1] > 0:
+                    list_of_remaning_nt.append(sorted_ld[0][0])
+            last_nt = list_of_remaning_nt[random.randint(0, len(list_of_remaning_nt)-1)]
+            next_nt = my_dnt[last_nt][random.randint(0, len(my_dnt[last_nt]) - 1)]
+            del (my_dnt[next_nt[0]][my_dnt[next_nt[0]].index(next_nt)])
+            return next_nt
+
+
+def dinucleotide_calculator(seq):
+    """
+    :return: (dictionary) a dictionary containing the frequency of every possible di-nucleotides
+    """
+    dic = {"AA": 0., "AT": 0., "AG": 0., "AC": 0., "TA": 0., "TT": 0., "TG": 0., "TC": 0.,
+           "GA": 0., "GT": 0., "GG": 0., "GC": 0., "CA": 0., "CT": 0., "CG": 0., "CC": 0.}
+
+    cur = {"AA": 0., "AT": 0., "AG": 0., "AC": 0., "TA": 0., "TT": 0., "TG": 0., "TC": 0.,
+           "GA": 0., "GT": 0., "GG": 0., "GC": 0., "CA": 0., "CT": 0., "CG": 0., "CC": 0.}
+    if len(seq) > 1:
+        for j in range(len(seq) - 1):
+            cur[seq[j:j + 2]] += 1
+        for key in dic.keys():
+            dic[key] += float(cur[key]) / (len(seq) - 1)
+
+    return dic
+
+
+def flexible_dnt_sequence_generator(length, dnt_list):
+    seq = ""
+    my_dnt_list = []
+    for i in range(len(dnt_list)):
+        my_dnt_list += [list_name[i]] * int(round(dnt_list[i] * 400))
+
+    my_dnt =  {"A" : [], "C" : [], "G": [], "T" : []}
+
+    # select only the wanted dnt
+    for i in range(length-2): # because of the init dnt
+        dnt = my_dnt_list[random.randint(0, len(my_dnt_list)-1)]
+        my_dnt[dnt[0]].append(dnt)
+
+    my_seq = my_dnt_list[random.randint(0, len(my_dnt_list)-1)]
+
+
+
+    # building the sequence
+    res = ""
+    while res != "Done":
+        res = next_dnt2(my_dnt, my_seq[-1])
+        if res != "Done":
+            my_seq += res
+
+
+    dnt_prop_txt = ""
+    dnt_prop = dinucleotide_calculator(my_seq)
+    for key in dnt_prop.keys():
+        dnt_prop_txt += key + ": " + str(dnt_prop[key]) + " | "
+
+    dnt_prop_txt = dnt_prop_txt[0:len(dnt_prop_txt)-3]
+
+    return my_seq, dnt_prop_txt, dnt_prop
+
+
+
+
+def header_dnt_generator(length, header_text, num_seq):
+    header = ">seq" + str(num_seq) + " | length : " +  str(length) + " | " + header_text
+    return header
+
+
+def fasta_dnt_generator(size_int, dnt_list , number_seq, output, out_name):
+    res_stat = [0 for i in range(16)]
+    with open(output + out_name + ".fasta", "w") as outfile:
+        for i in range(1, number_seq+1):
+            length = random.randint(size_int[0], size_int[1])
+            seq, text_header, dnt_prop = flexible_dnt_sequence_generator(length, dnt_list)
+            for j in range(len(list_name)):
+                res_stat[j] += dnt_prop[list_name[j]]
+            header = header_dnt_generator(len(seq), text_header, i)
+            outfile.write(header + "\n" + seq + "\n")
+    for j in range(len(res_stat)):
+        res_stat[j] = res_stat[j] / number_seq
+    return res_stat
 
 
 def sequence_generator(length, a_prop, t_prop, c_prop, g_prop):
@@ -154,32 +286,63 @@ def my_format(list_prop):
     return new_list
 
 
-def handling_nt_proportion(prop_A, prop_T, prop_C, prop_G):
+def handling_nt_proportion(list_nt):
     """
-    Turning all string value to int, if possible. The None value are the estimated thanks to all the value in
-    prop_A, prop_T, prop_C, prop_G. At the and the sum of prop_A, prop_T, prop_C, prop_G must be equal to 1
-    :param prop_A: (string of a number or None value) proportion of A in the sequence we will create
-    :param prop_T: (string of a number or None value) proportion of T in the sequence we will create
-    :param prop_C: (string of a number or None value) proportion of C in the sequence we will create
-    :param prop_G: (string of a number or None value) proportion of G in the sequence we will create
-    :return:  prop[0], prop[1], prop[2], prop[3] float value
+    Turning all string value to int, if possible. The None value are estimated thanks to all the values in
+    list_nt. The sum of every value in list_nt must equal 1
     """
     nbr_none = 0
     none_list = []
-    prop = my_format([prop_A, prop_T, prop_C, prop_G])
-    temp = my_format([prop_A, prop_T, prop_C, prop_G])
+    prop = my_format(list_nt)
+    temp = copy.deepcopy(prop)
     for i in range(len(prop)):
         if prop[i] is None:
             nbr_none += 1
             none_list.append(i)
     if nbr_none == 0:
-        return prop[0], prop[1], prop[2], prop[3]
+        return prop
     else:
         for i in range(len(none_list)):
             temp[none_list[i]] = 0
         for i in range(len(none_list)):
+
             prop[none_list[i]] = (1. - sum(temp)) / len(none_list)
-        return prop[0], prop[1], prop[2], prop[3]
+        return prop
+
+
+
+def test_dnt_nt(nt_tuple, dnt_tuple):
+    nt_value = False
+    dnt_value = False
+
+    for val in nt_tuple:
+        if val is not None:
+            nt_value = True
+    for val in dnt_tuple:
+        if val is not None:
+            dnt_value = True
+
+    if nt_value and dnt_value:
+        print "1"
+        return "mix"
+
+    elif nt_value:
+        return "nt"
+
+    elif dnt_value:
+        return "dnt"
+
+    else:
+        return "nt"
+
+
+def display_dnt_prop(list_dnt, message):
+
+    print message
+    res = ""
+    for i in range(len(list_dnt)):
+        res += list_name[i] + " : " + str(list_dnt[i]) + " | "
+    print res
 
 
 def launcher():
@@ -205,7 +368,7 @@ def launcher():
                         default=300)
     parser.add_argument('--nbr_seq', dest='nbr_seq', help="the number of sequence in the fasta file",
                         default=300)
-    parser.add_argument('--prop_A', dest='prop_A', help="the proportion of alanine in the fasta file",
+    parser.add_argument("--prop_A", dest='prop_A', help="the proportion of alanine in the fasta file",
                         default=None)
     parser.add_argument('--prop_C', dest='prop_C', help="the proportion of cytosine in the fasta file",
                         default=None)
@@ -217,21 +380,41 @@ def launcher():
                                                             " proportions, false else",
                         default=False)
 
+
+    parser.add_argument('--AA', dest='AA', help="the proportion of AA in the fasta file",
+                        default=None)
+    parser.add_argument('--AC', dest='AC', help="the proportion of AC in the fasta file",
+                        default=None)
+    parser.add_argument('--AG', dest='AG', help="the proportion of AG in the fasta file",
+                        default=None)
+    parser.add_argument('--AT', dest='AT', help="the proportion of AT in the fasta file",
+                        default=None)
+    parser.add_argument('--CA', dest='CA', help="the proportion of CA in the fasta file",
+                        default=None)
+    parser.add_argument('--CC', dest='CC', help="the proportion of CC in the fasta file",
+                        default=None)
+    parser.add_argument('--CG', dest='CG', help="the proportion of CG in the fasta file",
+                        default=None)
+    parser.add_argument('--CT', dest='CT', help="the proportion of CT in the fasta file",
+                        default=None)
+    parser.add_argument('--GA', dest='GA', help="the proportion of GA in the fasta file",
+                        default=None)
+    parser.add_argument('--GC', dest='GC', help="the proportion of GC in the fasta file",
+                        default=None)
+    parser.add_argument('--GG', dest='GG', help="the proportion of GG in the fasta file",
+                        default=None)
+    parser.add_argument('--GT', dest='GT', help="the proportion of GT in the fasta file",
+                        default=None)
+    parser.add_argument('--TA', dest='TA', help="the proportion of TA in the fasta file",
+                        default=None)
+    parser.add_argument('--TC', dest='TC', help="the proportion of TC in the fasta file",
+                        default=None)
+    parser.add_argument('--TG', dest='TG', help="the proportion of TG in the fasta file",
+                        default=None)
+    parser.add_argument('--TT', dest='TT', help="the proportion of TT in the fasta file",
+                        default=None)
+
     args = parser.parse_args()  # parsing arguments
-
-    args.prop_A, args.prop_T, args.prop_C, args.prop_G = \
-        handling_nt_proportion(args.prop_A, args.prop_T, args.prop_C, args.prop_G)
-
-    print "Nucleotides proportion : "
-    print "A : " + str(args.prop_A) + " - C : " + str(args.prop_C) + " - G : " + str(args.prop_G) + " - T : " + \
-          str(args.prop_T)
-    if args.prop_T == 0.25:
-        if 0 <= args.prop_A + args.prop_C + args.prop_G <= 1:
-            args.prop_T = 1. - (args.prop_A + args.prop_C + args.prop_G)
-        else:
-            print "negative value or not proportion value (i.e value between 0-1 or 0-100)"
-            print "Exiting"
-            exit(1)
 
     try:
         args.size_inf = int(args.size_inf)
@@ -269,12 +452,40 @@ def launcher():
     elif args.flexible == "False" or args.flexible is False:
         args.flexible = False
     else:
-        print "WARNING : unrogonized boolean value for flexible argument"
+        print "WARNING : unregonized boolean value for flexible argument"
         print "Setting it to False ! "
         args.flexible = False
 
-    size_int = [args.size_inf, args.size_max]
-    fasta_generator(size_int,  args.prop_A, args.prop_T, args.prop_C, args.prop_G, args.nbr_seq, args.output,
-                    args.filename, args.flexible)
 
-launcher()
+
+    nt_tuple = (args.prop_A, args.prop_T, args.prop_C, args.prop_G)
+    dnt_tuple = (args.AA, args.AC, args.AG, args.AT, args.CA, args.CC, args.CG, args.CT, args.GA, args.GC, args.GG, args.GT,
+                 args.TA, args.TC, args.TT, args.TG)
+
+    res = test_dnt_nt(nt_tuple, dnt_tuple)
+    size_int = [args.size_inf, args.size_max]
+    if res == "nt":
+
+        args.prop_A, args.prop_T, args.prop_C, args.prop_G = \
+            handling_nt_proportion((args.prop_A, args.prop_T, args.prop_C, args.prop_G))
+
+        print "Nucleotides proportion : "
+        print "A : " + str(args.prop_A) + " - C : " + str(args.prop_C) + " - G : " + str(args.prop_G) + " - T : " + \
+            str(args.prop_T)
+
+
+        fasta_generator(size_int,  args.prop_A, args.prop_T, args.prop_C, args.prop_G, args.nbr_seq, args.output,
+                        args.filename, args.flexible)
+
+    elif res == "dnt":
+        dnt_tuple = handling_nt_proportion(dnt_tuple)
+        display_dnt_prop(dnt_tuple, "di-nucleotides proportions")
+        res_stat = fasta_dnt_generator(size_int, dnt_tuple, args.nbr_seq, args.output, args.filename)
+        display_dnt_prop(res_stat, "proportion in the file : ")
+
+    else:
+        print "ouch will be hard"
+
+
+if __name__ == "__main__":
+    launcher()
