@@ -263,7 +263,7 @@ def my_format(list_prop):
             if val is not None:
                 val = float(val)
                 if val < 0:
-                    print "ERROR : propotion value below 0"
+                    print("ERROR : propotion value below 0")
                     exit(1)
                 if percentage:
                     new_list.append(val / 100)
@@ -274,15 +274,15 @@ def my_format(list_prop):
             else:
                 new_list.append(None)
         if percentage and tot_prop > 100:
-            print "ERROR : the sum of proportion given is greater than 100"
+            print("ERROR : the sum of proportion given is greater than 100")
             exit(1)
         elif not percentage and tot_prop > 1:
-            print "ERROR : the sum of proportion given is greater than 1"
+            print("ERROR : the sum of proportion given is greater than 1")
             exit(1)
     except ValueError:
-        print "ERROR : wrong proportion values."
-        print "Exiting..."
-        print exit(1)
+        print("ERROR : wrong proportion values.")
+        print("Exiting...")
+        exit(1)
     return new_list
 
 
@@ -323,7 +323,6 @@ def test_dnt_nt(nt_tuple, dnt_tuple):
             dnt_value = True
 
     if nt_value and dnt_value:
-        print "1"
         return "mix"
 
     elif nt_value:
@@ -338,11 +337,11 @@ def test_dnt_nt(nt_tuple, dnt_tuple):
 
 def display_dnt_prop(list_dnt, message):
 
-    print message
+    print(message)
     res = ""
     for i in range(len(list_dnt)):
         res += list_name[i] + " : " + str(list_dnt[i]) + " | "
-    print res
+    print(res)
 
 
 def launcher():
@@ -420,28 +419,28 @@ def launcher():
         args.size_inf = int(args.size_inf)
         args.size_max = int(args.size_max)
         if args.size_inf > args.size_max:
-            print "WARNING : maximum size value smaller than minimum size value"
-            print "switching size value (min <=> max)"
+            print("WARNING : maximum size value smaller than minimum size value")
+            print("switching size value (min <=> max)")
             temp = args.size_inf
             args.size_inf = args.size_max
             args.size_max = temp
     except ValueError:
-        print "ERROR : wrong size values."
-        print "Exiting..."
-        print exit(1)
+        print("ERROR : wrong size values.")
+        print("Exiting...")
+        exit(1)
 
     try:
         args.nbr_seq = int(args.nbr_seq)
         if args.nbr_seq < 0:
             int("a")
     except ValueError:
-        print "ERROR : wrong 'nbr_seq' values"
-        print "Exiting"
+        print("ERROR : wrong 'nbr_seq' values")
+        print("Exiting")
         exit(1)
 
     if not os.path.isdir(args.output):
-        print "The given path in 'output' doesn't exist !"
-        print "fasta file will be created in your current working directory"
+        print("The given path in 'output' doesn't exist !")
+        print("fasta file will be created in your current working directory")
         args.output = "./"
 
     if args.output[-1] != "/":
@@ -452,8 +451,8 @@ def launcher():
     elif args.flexible == "False" or args.flexible is False:
         args.flexible = False
     else:
-        print "WARNING : unregonized boolean value for flexible argument"
-        print "Setting it to False ! "
+        print("WARNING : unregonized boolean value for flexible argument")
+        print("Setting it to False ! ")
         args.flexible = False
 
 
@@ -469,9 +468,9 @@ def launcher():
         args.prop_A, args.prop_T, args.prop_C, args.prop_G = \
             handling_nt_proportion((args.prop_A, args.prop_T, args.prop_C, args.prop_G))
 
-        print "Nucleotides proportion : "
-        print "A : " + str(args.prop_A) + " - C : " + str(args.prop_C) + " - G : " + str(args.prop_G) + " - T : " + \
-            str(args.prop_T)
+        print("Nucleotides proportion : ")
+        print("A : " + str(args.prop_A) + " - C : " + str(args.prop_C) + " - G : " + str(args.prop_G) + " - T : " +
+            str(args.prop_T))
 
 
         fasta_generator(size_int,  args.prop_A, args.prop_T, args.prop_C, args.prop_G, args.nbr_seq, args.output,
@@ -484,7 +483,7 @@ def launcher():
         display_dnt_prop(res_stat, "proportion in the file : ")
 
     else:
-        print "ouch will be hard"
+        print("ouch will be hard")
 
 
 if __name__ == "__main__":
