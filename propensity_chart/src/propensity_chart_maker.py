@@ -280,6 +280,7 @@ def coordinate_calculator_metagene(list_seq, dic):
       positions in list seq
     - abscissa_end, ordinate_end, error_end, list_val_end : same from above but for the 30 last
     amino acid positions
+    - nb_seq (int) the number of sequences studied
     """
     list_val_beg = []
     list_val_end = []
@@ -317,8 +318,8 @@ def coordinate_calculator_metagene(list_seq, dic):
         error_beg.append(np.std(list_val_beg[i]))
         ordinate_end.append(np.mean(list_val_end[i]))
         error_end.append(np.std(list_val_end[i]))
-    return abscissa_beg, ordinate_beg, error_beg, list_val_beg, \
-        abscissa_end, ordinate_end, error_end, list_val_end,
+    return abscissa_beg, ordinate_beg, error_beg, list_val_beg,\
+        abscissa_end, ordinate_end, error_end, list_val_end, nb_seq[0]
 
 
 def make_man_withney_test(list_up, list_down):
@@ -370,7 +371,8 @@ def line_maker(list_pval, up_mean, down_mean, up_value, position=0):
 
 
 def graphic_maker(exon_up_beg, exon_down_beg, exon_up_end, exon_down_end,
-                  list_pval_beg, list_pval_end, name_scale, scale_n, output):
+                  list_pval_beg, list_pval_end, name_scale, scale_n, nb_seq_up, nb_seq_down,
+                  output):
     """Create the recap graphic.
 
     :param exon_up_beg: tuple of 3 list of float/int for the 30 first aa position
@@ -385,6 +387,8 @@ def graphic_maker(exon_up_beg, exon_down_beg, exon_up_end, exon_down_end,
     (only for the 30 last positions) in an up-regulated and down_regulated set of sequences.
     :param name_scale: (string) the short name of a scale
     :param scale_n: (string) the full name of a scale
+    :param nb_seq_up: (int) the number of peptide > 29 aa encoded by up exons
+    :param nb_seq_down: (int) the number of peptide > 29 aa encoded by down exons
     :param output: (string) the path where the figures will be created
     """
     fig = plt.figure(figsize=(48. / 2.54, 27 / 2.54))
@@ -413,8 +417,11 @@ def graphic_maker(exon_up_beg, exon_down_beg, exon_up_end, exon_down_end,
     lines, lcolor = line_maker(list_pval_beg, ordinate_up_beg, ordinate_down_beg, up_value)
     lc = mc.LineCollection(lines, colors=lcolor, linewidths=2)
     ax.add_collection(lc)
-    ax.set_title(name_scale + " for the 30 last position of peptide (<29 aa) encoded by up/down exons")
-    ax.set_xlabel("30 last amino acids position in peptides")
+    axtitle = name_scale + " for the 30 first position of peptide (<29 aa) encoded by up/down exons\n"
+    axtitle += "peptide encoded by up exons : " + str(nb_seq_up) + " - peptide encoded by down exons " + \
+               str(nb_seq_down)
+    ax.set_title(axtitle)
+    ax.set_xlabel("30 first amino acids position in peptides")
     ax.set_ylabel(scale_n + " scale by position")
     ax.plot([], [], color="#66FF66", label="up greater than down (p<0.05)")
     ax.plot([], [], color="#B266FF", label="down greater than up (p<0.05)")
@@ -440,7 +447,10 @@ def graphic_maker(exon_up_beg, exon_down_beg, exon_up_end, exon_down_end,
     lines, lcolor = line_maker(list_pval_end, ordinate_up_end, ordinate_down_end, up_value, -30)
     lc = mc.LineCollection(lines, colors=lcolor, linewidths=2)
     ax2.add_collection(lc)
-    ax2.set_title(name_scale + " for the 30 last position of peptide encoded(>29 aa) by up/down exons")
+    axtitle = name_scale + " for the 30 last position of peptide (<29 aa) encoded by up/down exons\n"
+    axtitle += "peptide encoded by up exons : " + str(nb_seq_up) + " - peptide encoded by down exons " + \
+               str(nb_seq_down)
+    ax2.set_title(axtitle)
     ax2.set_xlabel("30 last amino acids position in peptides")
     ax2.set_ylabel(scale_n + " scale by position")
     ax2.plot([], [], color="#66FF66", label="up greater than down (p<0.05)")
@@ -455,7 +465,7 @@ def graphic_maker(exon_up_beg, exon_down_beg, exon_up_end, exon_down_end,
     plt.close()
 
 
-def boxplot_maker(box_up, box_down, name_scale, scale_n, output):
+def boxplot_maker(box_up, box_down, name_scale, scale_n, nb_seq_up, nb_seq_down, output):
     """
     Create a boxplot comparing the propensity scale 'name_scale' between the up and down regulated set of exons.
 
@@ -463,6 +473,8 @@ def boxplot_maker(box_up, box_down, name_scale, scale_n, output):
     :param box_down: (list of float), propensity value for each down exons
     :param name_scale: (string) the short name of a scale
     :param scale_n: (string) the full name of a scale
+    :param nb_seq_up: (int) the number of peptide > 29 aa encoded by up exons
+    :param nb_seq_down: (int) the number of peptide > 29 aa encoded by down exons
     :param output: (string) the path where the figures will be created
     """
     fig = plt.figure(figsize=(20. / 2.54, 16 / 2.54))
@@ -473,7 +485,9 @@ def boxplot_maker(box_up, box_down, name_scale, scale_n, output):
                      notch=False, patch_artist=True)
     box['boxes'][0].set_facecolor("#EB4C4C")
     box['boxes'][1].set_facecolor("#59BADE")
-    title = name_scale + " by peptides (>29 aa) encoded by up/down exons"
+    title = name_scale + " by peptides (>29 aa) encoded by up/down exons\n"
+    title += "peptide encoded by up exons : " + str(nb_seq_up) + " - peptide encoded by down exons " + \
+             str(nb_seq_down)
     ytitle = scale_n + "scale by peptide"
     ax.set_title(title)
     ax.set_xlabel("man_whitney test : p=" + str(pval))
@@ -523,13 +537,15 @@ def wrap(excel_up, excel_down, output, max_size):
         res_down = coordinate_calculator_metagene(seq_down, list_dic[i])
         list_pval_beg = make_list_comparison(res_up[3], res_down[3])
         list_pval_end = make_list_comparison(res_up[7], res_down[7])
+        nb_seq_up = res_up[-1]
+        nb_seq_down = res_down[-1]
         res_up_beg = res_up[0:3]
-        res_up_end = res_up[4:-1]
+        res_up_end = res_up[4:-2]
         res_down_beg = res_down[0:3]
-        res_down_end = res_down[4:-1]
+        res_down_end = res_down[4:-2]
         graphic_maker(res_up_beg, res_down_beg, res_up_end, res_down_end,
-                      list_pval_beg, list_pval_end, scale_name[i], scale[i], output)
-        boxplot_maker(exon_value_up, exon_value_down, scale_name[i], scale[i], output)
+                      list_pval_beg, list_pval_end, scale_name[i], scale[i], nb_seq_up, nb_seq_down, output)
+        boxplot_maker(exon_value_up, exon_value_down, scale_name[i], scale[i], nb_seq_up, nb_seq_down, output)
 
 
 def launcher():
