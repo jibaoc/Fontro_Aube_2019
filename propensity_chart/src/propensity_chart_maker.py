@@ -179,19 +179,88 @@ aa2deleage_coil = {
     "Y": 1.109, "V": 0.772
 }
 
+# ----------------------------------- group dictionaries --------------------------------------------
+
+aa2small = {
+    "A": 1., "R": 0., "N": 1., "D": 1., "C": 1., "Q": 0.,
+    "E": 0., "G": 1., "H": 0., "I": 0., "L": 0., "K": 0.,
+    "M": 0., "F": 0., "P": 1., "S": 1., "T": 1., "W": 0.,
+    "Y": 0., "V": 1.
+}
+
+aa2disorder = {
+    "A": 1., "R": 0., "N": 0., "D": 0., "C": 0., "Q": 1.,
+    "E": 1., "G": 1., "H": 0., "I": 0., "L": 0., "K": 1.,
+    "M": 0., "F": 0., "P": 1., "S": 1., "T": 0., "W": 0.,
+    "Y": 0., "V": 0.
+}
+
+aa2order = {
+    "A": 0., "R": 0., "N": 1., "D": 0., "C": 1., "Q": 0.,
+    "E": 0., "G": 0., "H": 0., "I": 1., "L": 1., "K": 0.,
+    "M": 0., "F": 1., "P": 0., "S": 0., "T": 0., "W": 1.,
+    "Y": 1., "V": 1.
+}
+
+aa2uncharged = {
+    "A": 0., "R": 0., "N": 1., "D": 0., "C": 1., "Q": 1.,
+    "E": 0., "G": 0., "H": 0., "I": 0., "L": 0., "K": 0.,
+    "M": 0., "F": 0., "P": 1., "S": 1., "T": 1., "W": 0.,
+    "Y": 0., "V": 0.
+}
+
+aa2charged = {
+    "A": 0., "R": 1., "N": 0., "D": 1., "C": 0., "Q": 0.,
+    "E": 1., "G": 0., "H": 1., "I": 0., "L": 0., "K": 1.,
+    "M": 0., "F": 0., "P": 0., "S": 0., "T": 0., "W": 0.,
+    "Y": 0., "V": 0.
+}
+
+aa2hydroxylic = {
+    "A": 0., "R": 0., "N": 0., "D": 0., "C": 0., "Q": 0.,
+    "E": 0., "G": 0., "H": 0., "I": 0., "L": 0., "K": 0.,
+    "M": 0., "F": 0., "P": 0., "S": 1., "T": 1., "W": 0.,
+    "Y": 1., "V": 0.
+}
+
+aa2acidic = {
+    "A": 0., "R": 0., "N": 0., "D": 1., "C": 0., "Q": 0.,
+    "E": 1., "G": 0., "H": 0., "I": 0., "L": 0., "K": 0.,
+    "M": 0., "F": 0., "P": 0., "S": 0., "T": 0., "W": 0.,
+    "Y": 0., "V": 0.
+}
+
+aa2hydrophobic = {
+    "A": 1., "R": 0., "N": 0., "D": 0., "C": 1., "Q": 0.,
+    "E": 0., "G": 0., "H": 0., "I": 1., "L": 1., "K": 0.,
+    "M": 1., "F": 1., "P": 1., "S": 0., "T": 0., "W": 1.,
+    "Y": 1., "V": 1.
+}
+
+aa2hydrophilic = {
+    "A": 0., "R": 1., "N": 1., "D": 1., "C": 0., "Q": 1.,
+    "E": 1., "G": 0., "H": 1., "I": 0., "L": 0., "K": 1.,
+    "M": 0., "F": 0., "P": 0., "S": 1., "T": 1., "W": 0.,
+    "Y": 0., "V": 0.
+}
+
+
 list_dic = [aa2kyte_hydrophobicity, aa2eisenberg_hydrophobicity,
             aa2fauchere_hydrophobicity, aa2zimmerman_polarity,
             aa2grantham_polarity, aa2deleage_alpha, aa2levitt_alpha,
             aa2chou_alpha, aa2nagano_beta, aa2deleage_beta, aa2chou_beta,
             aa2deleage_bturn, aa2levitt_bturn, aa2chou_bturn, aa2nagano_coil,
-            aa2deleage_coil]
+            aa2deleage_coil, aa2small, aa2disorder, aa2order, aa2uncharged, aa2charged,
+            aa2hydroxylic, aa2acidic, aa2hydrophobic, aa2hydrophilic]
 scale_name = ["hydrophobicity", "hydrophobicity", "hydrophobicity",
               "polarity", "polarity", "alpha helix prediction",
               "alpha helix prediction", "alpha helix prediction",
               "beta helix prediction", "beta helix prediction",
               "beta helix prediction", "beta turn prediction",
               "beta turn prediction", "beta turn prediction",
-              "coil prediction", "coil prediction"]
+              "coil prediction", "coil prediction", "small",
+              "disorder", "order", "uncharged", "charged", "hydroxylic",
+              "acidic", "hydrophobic", "hydrophilic"]
 
 scale = ["hydrophobicity(kyte)", "hydrophobicity(eisenberg)",
          "hydrophobicity(fauchere)", "polarity(zimmerman)",
@@ -200,7 +269,9 @@ scale = ["hydrophobicity(kyte)", "hydrophobicity(eisenberg)",
          "beta helix prediction(nagano)", "beta helix prediction(deleage)",
          "beta helix prediction(chou)", "beta turn prediction(deleage)",
          "beta turn prediction(levitt)", "beta turn prediction(chou)",
-         "coil prediction(nagano)", "coil prediction(deleage)"]
+         "coil prediction(nagano)", "coil prediction(deleage)", "small",
+         "disorder", "order", "uncharged", "charged", "hydroxylic",
+         "acidic", "hydrophobic", "hydrophilic"]
 
 # functions
 
