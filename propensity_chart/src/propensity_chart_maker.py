@@ -333,11 +333,12 @@ def get_exons_value(list_seq, dic):
     return list_val
 
 
-def coordinate_calculator_metagene(list_seq, dic):
+def coordinate_calculator_metagene(list_seq, dic, edge_size):
     """Turn a list of sequences into coordinates given a dictionary dic.
 
     :param list_seq: (list of string) list of peptide sequences
     :param dic: (dict of float) associate each amino_acid to a value
+    :param edge_size: (int) the edge size of peptide to display
     :return: 8 lists of floats : abscissa_beg, ordinate_beg,
     error_beg, list_val_beg, abscissa_end, ordinate_end, error_end,
     list_val_end
@@ -356,28 +357,22 @@ def coordinate_calculator_metagene(list_seq, dic):
     list_val_beg = []
     list_val_end = []
     nb_seq = []
-    abscissa_beg = np.arange(0, 30)
-    abscissa_end = np.arange(-30, 0)
+    abscissa_beg = np.arange(0, edge_size)
+    abscissa_end = np.arange(-edge_size, 0)
     for j in abscissa_beg:
         cur_val = []
         seq = 0
         for i in range(len(list_seq)):
-            try:
-                cur_val.append(dic[list_seq[i][j]])
-                seq += 1
-            except IndexError:
-                seq += 0
+            cur_val.append(dic[list_seq[i][j]])
+            seq += 1
         nb_seq.append(seq)
         list_val_beg.append(copy.deepcopy(cur_val))
     for j in abscissa_end:
         cur_val = []
         seq = 0
         for i in range(len(list_seq)):
-            try:
-                cur_val.append(dic[list_seq[i][j]])
-                seq += 1
-            except IndexError:
-                seq += 0
+            cur_val.append(dic[list_seq[i][j]])
+            seq += 1
         nb_seq.append(seq)
         list_val_end.append(copy.deepcopy(cur_val))
     ordinate_beg = []
@@ -442,7 +437,7 @@ def line_maker(list_pval, up_mean, down_mean, up_value, position=0):
 
 
 def graphic_maker(exon_up_beg, exon_down_beg, exon_up_end, exon_down_end,
-                  list_pval_beg, list_pval_end, name_scale, scale_n, nb_seq_up, nb_seq_down,
+                  list_pval_beg, list_pval_end, name_scale, scale_n, nb_seq_up, nb_seq_down, edge_size,
                   output):
     """Create the recap graphic.
 
@@ -460,6 +455,7 @@ def graphic_maker(exon_up_beg, exon_down_beg, exon_up_end, exon_down_end,
     :param scale_n: (string) the full name of a scale
     :param nb_seq_up: (int) the number of peptide > 29 aa encoded by up exons
     :param nb_seq_down: (int) the number of peptide > 29 aa encoded by down exons
+    :param edge_size: (int) the edge size of peptide to display
     :param output: (string) the path where the figures will be created
     """
     fig = plt.figure(figsize=(48. / 2.54, 27 / 2.54))
@@ -515,7 +511,7 @@ def graphic_maker(exon_up_beg, exon_down_beg, exon_up_end, exon_down_end,
                      label=area_down)
 
     up_value = max(ord_2 + ord2_2)
-    lines, lcolor = line_maker(list_pval_end, ordinate_up_end, ordinate_down_end, up_value, -30)
+    lines, lcolor = line_maker(list_pval_end, ordinate_up_end, ordinate_down_end, up_value, -edge_size)
     lc = mc.LineCollection(lines, colors=lcolor, linewidths=2)
     ax2.add_collection(lc)
     axtitle = name_scale + " for the 30 last position of peptide (<29 aa) encoded by up/down exons\n"
@@ -589,7 +585,7 @@ def make_list_comparison(list_val_up, list_val_down):
     return list_pval
 
 
-def wrap(excel_up, excel_down, output, max_size):
+def wrap(excel_up, excel_down, output, max_size, edge_size):
     """
     Wrap all the functions on top of this function.
 
@@ -597,15 +593,16 @@ def wrap(excel_up, excel_down, output, max_size):
     :param excel_down: (string) the name of the query result for the down exons
     :param output: (string) the path  where the figure will be created
     :param max_size: (int) the maximum size of peptide sequence allowed.
+    :param edge_size: (int) the edge size of peptide to display
     if there are longer than max_size, they will not be kept for the graphics
     """
     for i in range(len(list_dic)):
-        seq_up = exons_reader(excel_up, max_size, 30)
-        seq_down = exons_reader(excel_down, max_size, 30)
+        seq_up = exons_reader(excel_up, max_size, edge_size)
+        seq_down = exons_reader(excel_down, max_size, edge_size)
         exon_value_up = get_exons_value(seq_up, list_dic[i])
         exon_value_down = get_exons_value(seq_down, list_dic[i])
-        res_up = coordinate_calculator_metagene(seq_up, list_dic[i])
-        res_down = coordinate_calculator_metagene(seq_down, list_dic[i])
+        res_up = coordinate_calculator_metagene(seq_up, list_dic[i], edge_size)
+        res_down = coordinate_calculator_metagene(seq_down, list_dic[i], edge_size)
         list_pval_beg = make_list_comparison(res_up[3], res_down[3])
         list_pval_end = make_list_comparison(res_up[7], res_down[7])
         nb_seq_up = res_up[-1]
@@ -615,7 +612,7 @@ def wrap(excel_up, excel_down, output, max_size):
         res_down_beg = res_down[0:3]
         res_down_end = res_down[4:-2]
         graphic_maker(res_up_beg, res_down_beg, res_up_end, res_down_end,
-                      list_pval_beg, list_pval_end, scale_name[i], scale[i], nb_seq_up, nb_seq_down, output)
+                      list_pval_beg, list_pval_end, scale_name[i], scale[i], nb_seq_up, nb_seq_down, edge_size, output)
         boxplot_maker(exon_value_up, exon_value_down, scale_name[i], scale[i], nb_seq_up, nb_seq_down, output)
 
 
@@ -644,6 +641,9 @@ def launcher():
                                 "created")
     parser.add_argument("--max_size", dest="max_size", default=100000,
                         help="The max size of sequences in the file")
+    parser.add_argument("--edge_size", dest="edge_size", default=30,
+                        help="The edge size of peptide to see.")
+
     args = parser.parse_args()  # parsing arguments
 
     try:
@@ -653,7 +653,13 @@ def launcher():
         print("Exiting...")
         exit(1)
 
-    wrap(args.up, args.down, args.output, args.max_size)
+    try:
+        args.edge_size = int(args.edge_size)
+    except ValueError:
+        print("Wrong edge value")
+        print("Exiting...")
+        exit(1)
+    wrap(args.up, args.down, args.output, args.max_size, args.edge_size)
 
 
 if __name__ == "__main__":
