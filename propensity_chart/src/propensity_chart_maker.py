@@ -205,12 +205,13 @@ scale = ["hydrophobicity(kyte)", "hydrophobicity(eisenberg)",
 # functions
 
 
-def exons_reader(excel_file, max_size):
+def exons_reader(excel_file, max_size, min_size=0):
     """Description:read a query_result file produce by the tRNA program.
 
     :param excel_file: (string) path to an excel file.
         it must be produced by the tRNA program
     :param max_size: (int) the max size allowed for the peptide
+    :param min_size: (int) the min size allowed for the peptide
     :return: (list of string) the list of each sequence in the mapping file.
     the sequences cannot have a size greater than max_size.
     """
@@ -228,7 +229,7 @@ def exons_reader(excel_file, max_size):
     for row in df.itertuples():
         if isinstance(row.CDS_peptide_sequence, unicode):
             seq = row.CDS_peptide_sequence.replace("*", "")
-            if 0 < len(seq) < max_size + 1:
+            if min_size <= len(seq) < max_size + 1:
                 sequences.append(seq)
     return sequences
 
@@ -261,22 +262,31 @@ def get_exons_value(list_seq, dic):
     return list_val
 
 
-def cordinate_calculator(list_seq, dic):
-    """Turn a list of sequence into coordinates given a dictionary dic.
+def coordinate_calculator_metagene(list_seq, dic):
+    """Turn a list of sequences into coordinates given a dictionary dic.
 
     :param list_seq: (list of string) list of peptide sequences
     :param dic: (dict of float) associate each amino_acid to a value
-    :return: 4 lists of floats : abscissa, ordinate, error, nb_seq
-    and a list of list of float.
+    :return: 8 lists of floats : abscissa_beg, ordinate_beg,
+    error_beg, list_val_beg, abscissa_end, ordinate_end, error_end,
+    list_val_end
+     - abscissa_beg : the abscissa values for the 30 fist aa of
+     peptides in list seq
+     - ordinate_beg : the ordinate values for the 30 fist aa of
+     peptides in list seq for the propensity given in dic
+     - error_beg : the error value for the 30 fist aa of
+     peptides in list seq for the propensity given in dic
+     - list_val_beg : the list of value for each peptide at each 30 first amino acid
+      positions in list seq
+    - abscissa_end, ordinate_end, error_end, list_val_end : same from above but for the 30 last
+    amino acid positions
     """
-    list_val = []
-    max_length = 0
+    list_val_beg = []
+    list_val_end = []
     nb_seq = []
-    for i in range(len(list_seq)):
-        if len(list_seq[i]) > max_length:
-            max_length = len(list_seq[i])
-    absissa = np.arange(max_length)
-    for j in absissa:
+    abscissa_beg = np.arange(0, 30)
+    abscissa_end = np.arange(-30, 0)
+    for j in abscissa_beg:
         cur_val = []
         seq = 0
         for i in range(len(list_seq)):
@@ -286,13 +296,29 @@ def cordinate_calculator(list_seq, dic):
             except IndexError:
                 seq += 0
         nb_seq.append(seq)
-        list_val.append(copy.deepcopy(cur_val))
-    ordinate = []
-    error = []
-    for i in range(len(list_val)):
-        ordinate.append(np.mean(list_val[i]))
-        error.append(np.std(list_val[i]))
-    return absissa, ordinate, error, nb_seq, list_val
+        list_val_beg.append(copy.deepcopy(cur_val))
+    for j in abscissa_end:
+        cur_val = []
+        seq = 0
+        for i in range(len(list_seq)):
+            try:
+                cur_val.append(dic[list_seq[i][j]])
+                seq += 1
+            except IndexError:
+                seq += 0
+        nb_seq.append(seq)
+        list_val_end.append(copy.deepcopy(cur_val))
+    ordinate_beg = []
+    error_beg = []
+    ordinate_end = []
+    error_end = []
+    for i in range(len(list_val_beg)):
+        ordinate_beg.append(np.mean(list_val_beg[i]))
+        error_beg.append(np.std(list_val_beg[i]))
+        ordinate_end.append(np.mean(list_val_end[i]))
+        error_end.append(np.std(list_val_end[i]))
+    return abscissa_beg, ordinate_beg, error_beg, list_val_beg, \
+        abscissa_end, ordinate_end, error_end, list_val_end,
 
 
 def make_man_withney_test(list_up, list_down):
@@ -310,7 +336,7 @@ def make_man_withney_test(list_up, list_down):
     return p_val[1]
 
 
-def line_maker(list_pval, up_mean, down_mean, up_value):
+def line_maker(list_pval, up_mean, down_mean, up_value, position=0):
     """
     Create a list of lines, with their colour.
 
@@ -325,6 +351,7 @@ def line_maker(list_pval, up_mean, down_mean, up_value):
     of a regulated set of sequence.
     :param up_value: (int) the ordinate coordinates where the line will be
     placed.
+    :param position: (int) the abscissa position to begin to draw the lines
     :return: lines - (list of list of 2 tuple), the list of 2 tuple corresponds
     to a lines with the coordinates [(x1, y1), (x2, y2)]
     """
@@ -332,7 +359,8 @@ def line_maker(list_pval, up_mean, down_mean, up_value):
     lines = []
     for i in range(len(list_pval)):
         if list_pval[i] < 0.05:
-            lines.append([(i - 0.5, up_value), (i + 0.5, up_value)])
+            val = i + position
+            lines.append([(val - 0.5, up_value), (val + 0.5, up_value)])
             if up_mean[i] > down_mean[i]:
                 lcolor.append("#66FF66")  # green
             else:
@@ -341,91 +369,117 @@ def line_maker(list_pval, up_mean, down_mean, up_value):
     return lines, lcolor
 
 
-def graphic_maker(exon_up_coord, exon_down_coord, box_up, box_down, list_pval,
-                  name_scale, scale_n, output):
+def graphic_maker(exon_up_beg, exon_down_beg, exon_up_end, exon_down_end,
+                  list_pval_beg, list_pval_end, name_scale, scale_n, output):
     """Create the recap graphic.
 
-    :param exon_up_coord: tuple of 4 list of float/int
-    :param exon_down_coord: tuple of 4 list of float/int
-    :param box_up: (list of floats) the propensity value of each up exons
-    :param box_down: (list of floats) the propensity value of each down exons
-    :param list_pval: (list of float), list of pvalue get by the comparison
-    of a propensity scale in a particular sequence position in an
-    up-regulated and down_regulated set of sequences.
+    :param exon_up_beg: tuple of 3 list of float/int for the 30 first aa position
+    :param exon_down_beg: tuple of 3 list of float/int for the 30 first aa position
+    :param exon_up_end: tuple of 3 list of float/int for the 30 last aa position
+    :param exon_down_end: tuple of 3 list of float/int for the 30 last aa position
+    :param list_pval_beg: (list of float), list of pvalue get by the comparison
+    of a propensity scale in a particular sequence position
+    (only for the 30 first position) in an up-regulated and down_regulated set of sequences.
+    :param list_pval_end: (list of float), list of pvalue get by the comparison
+    of a propensity scale in a particular sequence position
+    (only for the 30 last positions) in an up-regulated and down_regulated set of sequences.
     :param name_scale: (string) the short name of a scale
     :param scale_n: (string) the full name of a scale
     :param output: (string) the path where the figures will be created
     """
     fig = plt.figure(figsize=(48. / 2.54, 27 / 2.54))
-    ax = fig.add_subplot(2, 1, 1)
-    abscissa_up, ordinate_up, error_up, nb_seq_up = exon_up_coord
-    abscissa_down, ordinate_down, error_down, nb_seq_down = exon_down_coord
-    if len(abscissa_up) > len(abscissa_down):
-        abscissa = abscissa_up
-        for i in range(len(abscissa_up) - len(abscissa_down)):
-            ordinate_down.append(0)
-            error_down.append(0)
-            nb_seq_down.append(0)
-    else:
-        abscissa = abscissa_down
-        for i in range(len(abscissa_down) - len(abscissa_up)):
-            ordinate_up.append(0)
-            error_up.append(0)
-            nb_seq_up.append(0)
+    ax = fig.add_subplot(1, 2, 1)
+    abscissa_beg, ordinate_up_beg, error_up_beg = exon_up_beg
+    abscissa_beg, ordinate_down_beg, error_down_beg = exon_down_beg
+    abscissa_end, ordinate_up_end, error_up_end = exon_up_end
+    abscissa_end, ordinate_down_end, error_down_end = exon_down_end
+
     label_up = "average " + str(name_scale) + " for up exons"
     label_down = "average " + str(name_scale) + " for down exons"
     area_up = "std of " + str(name_scale) + " for up exons"
     area_down = "std of " + str(name_scale) + " for down exons"
-    ax.plot(abscissa, ordinate_up, color="#EB4C4C", label=label_up)
-    ord_1 = [x - y for x, y in zip(ordinate_up, error_up)]
-    ord_2 = [x + y for x, y in zip(ordinate_up, error_up)]
-    ax.fill_between(abscissa, ord_1, ord_2,
+    ax.plot(abscissa_beg, ordinate_up_beg, color="#EB4C4C", label=label_up)
+    ord_1 = [x - y for x, y in zip(ordinate_up_beg, error_up_beg)]
+    ord_2 = [x + y for x, y in zip(ordinate_up_beg, error_up_beg)]
+    ax.fill_between(abscissa_beg, ord_1, ord_2,
                     alpha=0.5, color="#EB4C4C", label=area_up)
-    ax.plot(abscissa, ordinate_down, color="#59BADE",
+    ax.plot(abscissa_beg, ordinate_down_beg, color="#59BADE",
             label=label_down)
-    ord2_1 = [x - y for x, y in zip(ordinate_down, error_down)]
-    ord2_2 = [x + y for x, y in zip(ordinate_down, error_down)]
-    ax.fill_between(abscissa, ord2_1, ord2_2, alpha=0.5, color="#59BADE",
+    ord2_1 = [x - y for x, y in zip(ordinate_down_beg, error_down_beg)]
+    ord2_2 = [x + y for x, y in zip(ordinate_down_beg, error_down_beg)]
+    ax.fill_between(abscissa_beg, ord2_1, ord2_2, alpha=0.5, color="#59BADE",
                     label=area_down)
     up_value = max(ord_2 + ord2_2)
-    lines, lcolor = line_maker(list_pval, ordinate_up, ordinate_down, up_value)
+    lines, lcolor = line_maker(list_pval_beg, ordinate_up_beg, ordinate_down_beg, up_value)
     lc = mc.LineCollection(lines, colors=lcolor, linewidths=2)
     ax.add_collection(lc)
-    ax.set_title(name_scale + " by position of peptide coded by up/down exons")
-    ax.set_xlabel("position in peptides")
+    ax.set_title(name_scale + " for the 30 last position of peptide (<29 aa) encoded by up/down exons")
+    ax.set_xlabel("30 last amino acids position in peptides")
     ax.set_ylabel(scale_n + " scale by position")
     ax.plot([], [], color="#66FF66", label="up greater than down (p<0.05)")
     ax.plot([], [], color="#B266FF", label="down greater than up (p<0.05)")
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles, labels, frameon=True, loc='lower center', ncol=3)
 
-    ax2 = fig.add_subplot(2, 2, 3)
+    ax2 = fig.add_subplot(1, 2, 2)
+    label_up = "average " + str(name_scale) + " for up exons"
+    label_down = "average " + str(name_scale) + " for down exons"
+    area_up = "std of " + str(name_scale) + " for up exons"
+    area_down = "std of " + str(name_scale) + " for down exons"
+    ax2.plot(abscissa_end, ordinate_up_end, color="#EB4C4C", label=label_up)
+    ord_1 = [x - y for x, y in zip(ordinate_up_end, error_up_end)]
+    ord_2 = [x + y for x, y in zip(ordinate_up_end, error_up_end)]
+    ax2.fill_between(abscissa_end, ord_1, ord_2,
+                     alpha=0.5, color="#EB4C4C", label=area_up)
+    ax2.plot(abscissa_end, ordinate_down_end, color="#59BADE",
+             label=label_down)
+    ord2_1 = [x - y for x, y in zip(ordinate_down_end, error_down_end)]
+    ord2_2 = [x + y for x, y in zip(ordinate_down_end, error_down_end)]
+    ax2.fill_between(abscissa_end, ord2_1, ord2_2, alpha=0.5, color="#59BADE",
+                     label=area_down)
+
+    up_value = max(ord_2 + ord2_2)
+    lines, lcolor = line_maker(list_pval_end, ordinate_up_end, ordinate_down_end, up_value, -30)
+    lc = mc.LineCollection(lines, colors=lcolor, linewidths=2)
+    ax2.add_collection(lc)
+    ax2.set_title(name_scale + " for the 30 last position of peptide encoded(>29 aa) by up/down exons")
+    ax2.set_xlabel("30 last amino acids position in peptides")
+    ax2.set_ylabel(scale_n + " scale by position")
+    ax2.plot([], [], color="#66FF66", label="up greater than down (p<0.05)")
+    ax2.plot([], [], color="#B266FF", label="down greater than up (p<0.05)")
+    handles, labels = ax.get_legend_handles_labels()
+    fig.legend(handles, labels, frameon=True, loc='lower center', ncol=3)
+
+    plt.savefig(output + scale_n + "_figure.pdf", bbox_inches='tight')
+    plt.savefig(output + scale_n + "_figure.pdf", bbox_inches='tight')
+    plt.clf()
+    plt.cla()
+    plt.close()
+
+
+def boxplot_maker(box_up, box_down, name_scale, scale_n, output):
+    """
+    Create a boxplot comparing the propensity scale 'name_scale' between the up and down regulated set of exons.
+
+    :param box_up: (list of float), propensity value for each up exons
+    :param box_down: (list of float), propensity value for each down exons
+    :param name_scale: (string) the short name of a scale
+    :param scale_n: (string) the full name of a scale
+    :param output: (string) the path where the figures will be created
+    """
+    fig = plt.figure(figsize=(20. / 2.54, 16 / 2.54))
+    ax = fig.add_subplot(1, 1, 1)
     lab = ["up", "down"]
     pval = make_man_withney_test(box_up, box_down)
-    box = ax2.boxplot([box_up, box_down], labels=lab, showmeans=True,
-                      notch=False, patch_artist=True)
+    box = ax.boxplot([box_up, box_down], labels=lab, showmeans=True,
+                     notch=False, patch_artist=True)
     box['boxes'][0].set_facecolor("#EB4C4C")
     box['boxes'][1].set_facecolor("#59BADE")
-    title = name_scale + " by peptides coded by up/down exons"
+    title = name_scale + " by peptides (>29 aa) encoded by up/down exons"
     ytitle = scale_n + "scale by peptide"
-    ax2.set_title(title)
-    ax2.set_xlabel("man_whitney test : p=" + str(pval))
-    ax2.set_ylabel(ytitle)
-
-    ax3 = fig.add_subplot(2, 2, 4)
-    ax3.plot(abscissa, nb_seq_up, color="#EB4C4C", label="up")
-    ax3.plot(abscissa, nb_seq_down, color="#59BADE", label="down")
-    title = "number of amino acid studied at each peptide position"
-    ytitle = "number of amino acid studied"
-    xtitle = "position"
-    ax3.set_title(title)
-    ax3.set_ylabel(ytitle)
-    ax3.set_xlabel(xtitle)
-    handles, labels = ax3.get_legend_handles_labels()
-    ax3.legend(handles, labels)
-
-    plt.savefig(output + scale_n + "_figure.pdf", bbox_inches='tight')
-    plt.savefig(output + scale_n + "_figure.pdf", bbox_inches='tight')
+    ax.set_title(title)
+    ax.set_xlabel("man_whitney test : p=" + str(pval))
+    ax.set_ylabel(ytitle)
+    plt.savefig(output + scale_n + "_boxplot.pdf", bbox_inches='tight')
+    plt.savefig(output + scale_n + "_boxplot.pdf", bbox_inches='tight')
     plt.clf()
     plt.cla()
     plt.close()
@@ -461,17 +515,21 @@ def wrap(excel_up, excel_down, output, max_size):
     if there are longer than max_size, they will not be kept for the graphics
     """
     for i in range(len(list_dic)):
-        seq_up = exons_reader(excel_up, max_size)
-        seq_down = exons_reader(excel_down, max_size)
+        seq_up = exons_reader(excel_up, max_size, 30)
+        seq_down = exons_reader(excel_down, max_size, 30)
         exon_value_up = get_exons_value(seq_up, list_dic[i])
         exon_value_down = get_exons_value(seq_down, list_dic[i])
-        res_up = cordinate_calculator(seq_up, list_dic[i])
-        res_down = cordinate_calculator(seq_down, list_dic[i])
-        list_pval = make_list_comparison(res_up[-1], res_down[-1])
-        res_up = res_up[:-1]
-        res_down = res_down[:-1]
-        graphic_maker(res_up, res_down, exon_value_up, exon_value_down,
-                      list_pval, scale_name[i], scale[i], output)
+        res_up = coordinate_calculator_metagene(seq_up, list_dic[i])
+        res_down = coordinate_calculator_metagene(seq_down, list_dic[i])
+        list_pval_beg = make_list_comparison(res_up[3], res_down[3])
+        list_pval_end = make_list_comparison(res_up[7], res_down[7])
+        res_up_beg = res_up[0:3]
+        res_up_end = res_up[4:-1]
+        res_down_beg = res_down[0:3]
+        res_down_end = res_down[4:-1]
+        graphic_maker(res_up_beg, res_down_beg, res_up_end, res_down_end,
+                      list_pval_beg, list_pval_end, scale_name[i], scale[i], output)
+        boxplot_maker(exon_value_up, exon_value_down, scale_name[i], scale[i], output)
 
 
 def launcher():
