@@ -228,7 +228,7 @@ def exons_reader(excel_file, max_size):
     for row in df.itertuples():
         if isinstance(row.CDS_peptide_sequence, unicode):
             seq = row.CDS_peptide_sequence.replace("*", "")
-            if len(seq) > 0 and len(seq) < max_size + 1:
+            if 0 < len(seq) < max_size + 1:
                 sequences.append(seq)
     return sequences
 
@@ -242,7 +242,7 @@ def get_exons_value(list_seq, dic):
     :param list_seq: (list of string), list of peptide sequences
     :param dic: (dictionary) each amino acid (key) is associated with a float
     value (value)
-    :return: (list of float) the list of propencity value for each sequences
+    :return: (list of float) the list of propensity value for each sequences
     in list_seq
     """
     list_val = []
@@ -262,11 +262,11 @@ def get_exons_value(list_seq, dic):
 
 
 def cordinate_calculator(list_seq, dic):
-    """Turn a list of sequence into cordinates given a dictionary dic.
+    """Turn a list of sequence into coordinates given a dictionary dic.
 
-    :param list_seq: (list of string) list of pepide sequences
+    :param list_seq: (list of string) list of peptide sequences
     :param dic: (dict of float) associate each amino_acid to a value
-    :return: 4 lists of floats : absicsa, ordinate, error, nb_seq
+    :return: 4 lists of floats : abscissa, ordinate, error, nb_seq
     and a list of list of float.
     """
     list_val = []
@@ -342,7 +342,7 @@ def line_maker(list_pval, up_mean, down_mean, up_value):
 
 
 def graphic_maker(exon_up_coord, exon_down_coord, box_up, box_down, list_pval,
-                  name_scale, scale, output):
+                  name_scale, scale_n, output):
     """Create the recap graphic.
 
     :param exon_up_coord: tuple of 4 list of float/int
@@ -353,22 +353,22 @@ def graphic_maker(exon_up_coord, exon_down_coord, box_up, box_down, list_pval,
     of a propensity scale in a particular sequence position in an
     up-regulated and down_regulated set of sequences.
     :param name_scale: (string) the short name of a scale
-    :param scale: (string) the full name of a scale
+    :param scale_n: (string) the full name of a scale
     :param output: (string) the path where the figures will be created
     """
     fig = plt.figure(figsize=(48. / 2.54, 27 / 2.54))
     ax = fig.add_subplot(2, 1, 1)
-    absissa_up, ordinate_up, error_up, nb_seq_up = exon_up_coord
-    absissa_down, ordinate_down, error_down, nb_seq_down = exon_down_coord
-    if len(absissa_up) > len(absissa_down):
-        absissa = absissa_up
-        for i in range(len(absissa_up) - len(absissa_down)):
+    abscissa_up, ordinate_up, error_up, nb_seq_up = exon_up_coord
+    abscissa_down, ordinate_down, error_down, nb_seq_down = exon_down_coord
+    if len(abscissa_up) > len(abscissa_down):
+        abscissa = abscissa_up
+        for i in range(len(abscissa_up) - len(abscissa_down)):
             ordinate_down.append(0)
             error_down.append(0)
             nb_seq_down.append(0)
     else:
-        absissa = absissa_down
-        for i in range(len(absissa_down) - len(absissa_up)):
+        abscissa = abscissa_down
+        for i in range(len(abscissa_down) - len(abscissa_up)):
             ordinate_up.append(0)
             error_up.append(0)
             nb_seq_up.append(0)
@@ -376,24 +376,24 @@ def graphic_maker(exon_up_coord, exon_down_coord, box_up, box_down, list_pval,
     label_down = "average " + str(name_scale) + " for down exons"
     area_up = "std of " + str(name_scale) + " for up exons"
     area_down = "std of " + str(name_scale) + " for down exons"
-    ax.plot(absissa, ordinate_up, color="#EB4C4C", label=label_up)
+    ax.plot(abscissa, ordinate_up, color="#EB4C4C", label=label_up)
     ord_1 = [x - y for x, y in zip(ordinate_up, error_up)]
     ord_2 = [x + y for x, y in zip(ordinate_up, error_up)]
-    ax.fill_between(absissa, ord_1, ord_2,
+    ax.fill_between(abscissa, ord_1, ord_2,
                     alpha=0.5, color="#EB4C4C", label=area_up)
-    ax.plot(absissa, ordinate_down, color="#59BADE",
+    ax.plot(abscissa, ordinate_down, color="#59BADE",
             label=label_down)
     ord2_1 = [x - y for x, y in zip(ordinate_down, error_down)]
     ord2_2 = [x + y for x, y in zip(ordinate_down, error_down)]
-    ax.fill_between(absissa, ord2_1, ord2_2, alpha=0.5, color="#59BADE",
+    ax.fill_between(abscissa, ord2_1, ord2_2, alpha=0.5, color="#59BADE",
                     label=area_down)
     up_value = max(ord_2 + ord2_2)
     lines, lcolor = line_maker(list_pval, ordinate_up, ordinate_down, up_value)
     lc = mc.LineCollection(lines, colors=lcolor, linewidths=2)
     ax.add_collection(lc)
-    ax.set_title(name_scale + " by position of peptite coded by up/down exons")
+    ax.set_title(name_scale + " by position of peptide coded by up/down exons")
     ax.set_xlabel("position in peptides")
-    ax.set_ylabel(scale + " scale by position")
+    ax.set_ylabel(scale_n + " scale by position")
     ax.plot([], [], color="#66FF66", label="up greater than down (p<0.05)")
     ax.plot([], [], color="#B266FF", label="down greater than up (p<0.05)")
     handles, labels = ax.get_legend_handles_labels()
@@ -407,14 +407,14 @@ def graphic_maker(exon_up_coord, exon_down_coord, box_up, box_down, list_pval,
     box['boxes'][0].set_facecolor("#EB4C4C")
     box['boxes'][1].set_facecolor("#59BADE")
     title = name_scale + " by peptides coded by up/down exons"
-    ytitle = scale + "scale by peptide"
+    ytitle = scale_n + "scale by peptide"
     ax2.set_title(title)
-    ax2.set_xlabel("man_witney test : p=" + str(pval))
+    ax2.set_xlabel("man_whitney test : p=" + str(pval))
     ax2.set_ylabel(ytitle)
 
     ax3 = fig.add_subplot(2, 2, 4)
-    ax3.plot(absissa, nb_seq_up, color="#EB4C4C", label="up")
-    ax3.plot(absissa, nb_seq_down, color="#59BADE", label="down")
+    ax3.plot(abscissa, nb_seq_up, color="#EB4C4C", label="up")
+    ax3.plot(abscissa, nb_seq_down, color="#59BADE", label="down")
     title = "number of amino acid studied at each peptide position"
     ytitle = "number of amino acid studied"
     xtitle = "position"
@@ -424,8 +424,8 @@ def graphic_maker(exon_up_coord, exon_down_coord, box_up, box_down, list_pval,
     handles, labels = ax3.get_legend_handles_labels()
     ax3.legend(handles, labels)
 
-    plt.savefig(output + scale + "_figure.pdf", bbox_inches='tight')
-    plt.savefig(output + scale + "_figure.pdf", bbox_inches='tight')
+    plt.savefig(output + scale_n + "_figure.pdf", bbox_inches='tight')
+    plt.savefig(output + scale_n + "_figure.pdf", bbox_inches='tight')
     plt.clf()
     plt.cla()
     plt.close()
@@ -433,7 +433,7 @@ def graphic_maker(exon_up_coord, exon_down_coord, box_up, box_down, list_pval,
 
 def make_list_comparison(list_val_up, list_val_down):
     """
-    Make multiplt mann withney tests.
+    Make multiple mann whitney tests.
 
     :param list_val_up: (list of list of floats)
     :param list_val_down: (list of lists of floats)
@@ -457,8 +457,8 @@ def wrap(excel_up, excel_down, output, max_size):
     :param excel_up: (string) the name of the query result for the up exons
     :param excel_down: (string) the name of the query result for the down exons
     :param output: (string) the path  where the figure will be created
-    :param max_size: (int) the maximun size of peptide sequence allowed.
-    if there are longer than max_size, they will not be keeped for the graphics
+    :param max_size: (int) the maximum size of peptide sequence allowed.
+    if there are longer than max_size, they will not be kept for the graphics
     """
     for i in range(len(list_dic)):
         seq_up = exons_reader(excel_up, max_size)
@@ -487,16 +487,16 @@ def launcher():
                                      description=desc,
                                      usage=usage)
     # Arguments for the parser
-    requiredNamed = parser.add_argument_group('required arguments')
-    requiredNamed.add_argument('--up', dest='up', required=True,
-                               help="file of the tRNA program that "
-                               "contains the up exons")
-    requiredNamed.add_argument('--down', dest='down', required=True,
-                               help="file of the tRNA program that contains "
-                               "the down exons")
-    requiredNamed.add_argument('--output', dest='output', required=True,
-                               help="the file where the graphic wille be "
-                               "created")
+    required_named = parser.add_argument_group('required arguments')
+    required_named.add_argument('--up', dest='up', required=True,
+                                help="file of the tRNA program that "
+                                "contains the up exons")
+    required_named.add_argument('--down', dest='down', required=True,
+                                help="file of the tRNA program that contains "
+                                "the down exons")
+    required_named.add_argument('--output', dest='output', required=True,
+                                help="the file where the graphic wille be "
+                                "created")
     parser.add_argument("--max_size", dest="max_size", default=100000,
                         help="The max size of sequences in the file")
     args = parser.parse_args()  # parsing arguments
