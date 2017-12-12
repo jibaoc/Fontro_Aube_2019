@@ -706,7 +706,11 @@ def launcher():
     of kyte hydrophobicityfor those 2 sets of peptides within the files"""
     format_arg = argparse.RawDescriptionHelpFormatter
     usage = '%(prog)s --up query_up.xlsx --down query_down.xlsx'
-    usage += ' [--output an outptut folder]'
+    usage += '--output an outptut folder'
+    usage += ' [--max_size the max size of sequences allowed in the file '
+    usage += ' --edge_size the edge_size of peptide we want to see '
+    usage += ' --window the size of the peptide window]'
+
     parser = argparse.ArgumentParser(formatter_class=format_arg,
                                      description=desc,
                                      usage=usage)
