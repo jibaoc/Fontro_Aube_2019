@@ -21,6 +21,7 @@ from matplotlib import pyplot as plt
 import argparse
 from scipy.stats import mannwhitneyu
 from matplotlib import collections as mc
+import math
 
 # dictionaries:
 # hydrophobicity of amino acids - Source Composition profiler.
@@ -388,6 +389,73 @@ def coordinate_calculator_metagene(list_seq, dic, edge_size):
         abscissa_end, ordinate_end, error_end, list_val_end, nb_seq[0]
 
 
+def coordinate_calculator_metagene_windowsed(list_seq, dic, edge_size, window):
+    """Turn a list of sequences into coordinates given a dictionary dic.
+
+    :param list_seq: (list of string) list of peptide sequences
+    :param dic: (dict of float) associate each amino_acid to a value
+    :param edge_size: (int) the edge size of peptide to display
+    :param window: (int) the size of the sliding window for calculation of propensity scale
+    :return: 8 lists of floats : abscissa_beg, ordinate_beg,
+    error_beg, list_val_beg, abscissa_end, ordinate_end, error_end,
+    list_val_end
+     - abscissa_beg : the abscissa values for the 30 fist aa of
+     peptides in list seq
+     - ordinate_beg : the ordinate values for the 30 fist aa of
+     peptides in list seq for the propensity given in dic
+     - error_beg : the error value for the 30 fist aa of
+     peptides in list seq for the propensity given in dic
+     - list_val_beg : the list of value for each peptide at each 30 first amino acid
+      positions in list seq
+    - abscissa_end, ordinate_end, error_end, list_val_end : same from above but for the 30 last
+    amino acid positions
+    - nb_seq (int) the number of sequences studied
+    """
+    list_val_beg = []
+    list_val_end = []
+    nb_seq = []
+    abscissa_beg = np.arange(math.floor(window/2), edge_size)
+    abscissa_end = np.arange(-edge_size, 0 - math.floor(window/2))
+    for j in abscissa_beg:
+        cur_val = []
+        seq = 0
+        for i in range(len(list_seq)):
+            sub_seq = list_seq[i][int(j-math.floor(window/2)):int(j+round(window/2))]
+            count = 0
+            for l in sub_seq:
+                count += dic[l]
+            cur_val.append(count/len(sub_seq))
+            seq += 1
+        nb_seq.append(seq)
+        list_val_beg.append(copy.deepcopy(cur_val))
+    for j in abscissa_end:
+        cur_val = []
+        seq = 0
+        for i in range(len(list_seq)):
+            if int(j+round(window/2)) == 0:
+                sub_seq = list_seq[i][int(j-math.floor(window/2)):]
+            else:
+                sub_seq = list_seq[i][int(j-math.floor(window/2)):int(j+round(window/2))]
+            count = 0
+            for l in sub_seq:
+                count += dic[l]
+            cur_val.append(count / len(sub_seq))
+            seq += 1
+        nb_seq.append(seq)
+        list_val_end.append(copy.deepcopy(cur_val))
+    ordinate_beg = []
+    error_beg = []
+    ordinate_end = []
+    error_end = []
+    for i in range(len(list_val_beg)):
+        ordinate_beg.append(np.mean(list_val_beg[i]))
+        error_beg.append(np.std(list_val_beg[i]))
+        ordinate_end.append(np.mean(list_val_end[i]))
+        error_end.append(np.std(list_val_end[i]))
+    return abscissa_beg, ordinate_beg, error_beg, list_val_beg,\
+        abscissa_end, ordinate_end, error_end, list_val_end, nb_seq[0]
+
+
 def make_man_withney_test(list_up, list_down):
     """
     Make a mann-whitney test.
@@ -438,7 +506,7 @@ def line_maker(list_pval, up_mean, down_mean, up_value, position=0):
 
 def graphic_maker(exon_up_beg, exon_down_beg, exon_up_end, exon_down_end,
                   list_pval_beg, list_pval_end, name_scale, scale_n, nb_seq_up, nb_seq_down, edge_size,
-                  output):
+                  output, window):
     """Create the recap graphic.
 
     :param exon_up_beg: tuple of 3 list of float/int for the 30 first aa position
@@ -456,7 +524,8 @@ def graphic_maker(exon_up_beg, exon_down_beg, exon_up_end, exon_down_end,
     :param nb_seq_up: (int) the number of peptide > 29 aa encoded by up exons
     :param nb_seq_down: (int) the number of peptide > 29 aa encoded by down exons
     :param edge_size: (int) the edge size of peptide to display
-    :param output: (string) the path where the figures will be created
+    :param output: (string) the path where the figures will be create
+    :param window: (int) the size of the sliding window
     """
     fig = plt.figure(figsize=(48. / 2.54, 27 / 2.54))
     ax = fig.add_subplot(1, 2, 1)
@@ -464,7 +533,6 @@ def graphic_maker(exon_up_beg, exon_down_beg, exon_up_end, exon_down_end,
     abscissa_beg, ordinate_down_beg, error_down_beg = exon_down_beg
     abscissa_end, ordinate_up_end, error_up_end = exon_up_end
     abscissa_end, ordinate_down_end, error_down_end = exon_down_end
-
     label_up = "average " + str(name_scale) + " for up exons"
     label_down = "average " + str(name_scale) + " for down exons"
     area_up = "std of " + str(name_scale) + " for up exons"
@@ -472,26 +540,35 @@ def graphic_maker(exon_up_beg, exon_down_beg, exon_up_end, exon_down_end,
     ax.plot(abscissa_beg, ordinate_up_beg, color="#EB4C4C", label=label_up)
     ord_1 = [x - y for x, y in zip(ordinate_up_beg, error_up_beg)]
     ord_2 = [x + y for x, y in zip(ordinate_up_beg, error_up_beg)]
+    ord_1_end = [x - y for x, y in zip(ordinate_up_end, error_up_end)]
+    ord_2_end = [x + y for x, y in zip(ordinate_up_end, error_up_end)]
     ax.fill_between(abscissa_beg, ord_1, ord_2,
                     alpha=0.5, color="#EB4C4C", label=area_up)
     ax.plot(abscissa_beg, ordinate_down_beg, color="#59BADE",
             label=label_down)
     ord2_1 = [x - y for x, y in zip(ordinate_down_beg, error_down_beg)]
     ord2_2 = [x + y for x, y in zip(ordinate_down_beg, error_down_beg)]
+    ord2_1_end = [x - y for x, y in zip(ordinate_down_end, error_down_end)]
+    ord2_2_end = [x + y for x, y in zip(ordinate_down_end, error_down_end)]
+    max_val = max(ord_1 + ord_2 + ord_1_end + ord_2_end + ord2_1 + ord2_2 + ord2_1_end + ord2_2_end)
+    max_val += max_val * 0.0625
+    min_val = min(ord_1 + ord_2 + ord_1_end + ord_2_end + ord2_1 + ord2_2 + ord2_1_end + ord2_2_end)
+    min_val -= max_val * 0.0625
     ax.fill_between(abscissa_beg, ord2_1, ord2_2, alpha=0.5, color="#59BADE",
                     label=area_down)
     up_value = max(ord_2 + ord2_2)
-    lines, lcolor = line_maker(list_pval_beg, ordinate_up_beg, ordinate_down_beg, up_value)
+    lines, lcolor = line_maker(list_pval_beg, ordinate_up_beg, ordinate_down_beg, up_value, abscissa_beg[0])
     lc = mc.LineCollection(lines, colors=lcolor, linewidths=2)
     ax.add_collection(lc)
-    axtitle = name_scale + " for the 30 first position of peptide (<29 aa) encoded by up/down exons\n"
+    axtitle = name_scale + " for the 30 first positions of peptide (<29 aa) encoded by up/down exons\n"
     axtitle += "peptide encoded by up exons : " + str(nb_seq_up) + " - peptide encoded by down exons " + \
-               str(nb_seq_down)
+               str(nb_seq_down) + "- window " + str(int(window)) + " aa"
     ax.set_title(axtitle)
-    ax.set_xlabel("30 first amino acids position in peptides")
+    ax.set_xlabel("30 first amino acid positions in peptides")
     ax.set_ylabel(scale_n + " scale by position")
     ax.plot([], [], color="#66FF66", label="up greater than down (p<0.05)")
     ax.plot([], [], color="#B266FF", label="down greater than up (p<0.05)")
+    ax.set_ylim([min_val, max_val])
 
     ax2 = fig.add_subplot(1, 2, 2)
     label_up = "average " + str(name_scale) + " for up exons"
@@ -514,14 +591,15 @@ def graphic_maker(exon_up_beg, exon_down_beg, exon_up_end, exon_down_end,
     lines, lcolor = line_maker(list_pval_end, ordinate_up_end, ordinate_down_end, up_value, -edge_size)
     lc = mc.LineCollection(lines, colors=lcolor, linewidths=2)
     ax2.add_collection(lc)
-    axtitle = name_scale + " for the 30 last position of peptide (<29 aa) encoded by up/down exons\n"
+    axtitle = name_scale + " for the 30 last positions of peptide (<29 aa) encoded by up/down exons\n"
     axtitle += "peptide encoded by up exons : " + str(nb_seq_up) + " - peptide encoded by down exons " + \
-               str(nb_seq_down)
+               str(nb_seq_down) + "- window " + str(int(window)) + " aa"
     ax2.set_title(axtitle)
-    ax2.set_xlabel("30 last amino acids position in peptides")
+    ax2.set_xlabel("30 last amino acid positions in peptides")
     ax2.set_ylabel(scale_n + " scale by position")
     ax2.plot([], [], color="#66FF66", label="up greater than down (p<0.05)")
     ax2.plot([], [], color="#B266FF", label="down greater than up (p<0.05)")
+    ax2.set_ylim([min_val, max_val])
     handles, labels = ax.get_legend_handles_labels()
     fig.legend(handles, labels, frameon=True, loc='lower center', ncol=3)
 
@@ -585,7 +663,7 @@ def make_list_comparison(list_val_up, list_val_down):
     return list_pval
 
 
-def wrap(excel_up, excel_down, output, max_size, edge_size):
+def wrap(excel_up, excel_down, output, max_size, edge_size, window):
     """
     Wrap all the functions on top of this function.
 
@@ -594,15 +672,17 @@ def wrap(excel_up, excel_down, output, max_size, edge_size):
     :param output: (string) the path  where the figure will be created
     :param max_size: (int) the maximum size of peptide sequence allowed.
     :param edge_size: (int) the edge size of peptide to display
+    :param window: (string) the size of the sliding window used to compute
+    the features at each amino acid position
     if there are longer than max_size, they will not be kept for the graphics
     """
     for i in range(len(list_dic)):
-        seq_up = exons_reader(excel_up, max_size, edge_size)
-        seq_down = exons_reader(excel_down, max_size, edge_size)
+        seq_up = exons_reader(excel_up, max_size, edge_size + round(window/2) + 1)
+        seq_down = exons_reader(excel_down, max_size, edge_size + round(window/2) + 1)
         exon_value_up = get_exons_value(seq_up, list_dic[i])
         exon_value_down = get_exons_value(seq_down, list_dic[i])
-        res_up = coordinate_calculator_metagene(seq_up, list_dic[i], edge_size)
-        res_down = coordinate_calculator_metagene(seq_down, list_dic[i], edge_size)
+        res_up = coordinate_calculator_metagene_windowsed(seq_up, list_dic[i], edge_size, window)
+        res_down = coordinate_calculator_metagene_windowsed(seq_down, list_dic[i], edge_size, window)
         list_pval_beg = make_list_comparison(res_up[3], res_down[3])
         list_pval_end = make_list_comparison(res_up[7], res_down[7])
         nb_seq_up = res_up[-1]
@@ -612,8 +692,10 @@ def wrap(excel_up, excel_down, output, max_size, edge_size):
         res_down_beg = res_down[0:3]
         res_down_end = res_down[4:-2]
         graphic_maker(res_up_beg, res_down_beg, res_up_end, res_down_end,
-                      list_pval_beg, list_pval_end, scale_name[i], scale[i], nb_seq_up, nb_seq_down, edge_size, output)
-        boxplot_maker(exon_value_up, exon_value_down, scale_name[i], scale[i], nb_seq_up, nb_seq_down, output)
+                      list_pval_beg, list_pval_end, scale_name[i], scale[i],
+                      nb_seq_up, nb_seq_down, edge_size, output, window)
+        boxplot_maker(exon_value_up, exon_value_down, scale_name[i],
+                      scale[i], nb_seq_up, nb_seq_down, output)
 
 
 def launcher():
@@ -644,6 +726,9 @@ def launcher():
     parser.add_argument("--edge_size", dest="edge_size", default=30,
                         help="The edge size of peptide to see.")
 
+    parser.add_argument("--window", dest="window", default=5,
+                        help="The size of the window.")
+
     args = parser.parse_args()  # parsing arguments
 
     try:
@@ -659,7 +744,15 @@ def launcher():
         print("Wrong edge value")
         print("Exiting...")
         exit(1)
-    wrap(args.up, args.down, args.output, args.max_size, args.edge_size)
+
+    try:
+        args.window = float(args.window)
+    except ValueError:
+        print("Wrong window value")
+        print("Exiting...")
+        exit(1)
+
+    wrap(args.up, args.down, args.output, args.max_size, args.edge_size, args.window)
 
 
 if __name__ == "__main__":
