@@ -80,7 +80,8 @@ def launcher():
 
     create in a given output_folder all the sub-folders in your given folder (i.e.
     folder1, folder2..., foldern here) and create in those sub_folders the propensity charts
-    for the 2 sets of peptides given in the sequence sheet of query_result_up/down.xlsx
+    for the 2 sets of peptides (contained in query_result_up.xlsx, query_result_down.xlsx)
+    given in the sequence sheet of query_result_up/down.xlsx
     """
     format_arg = argparse.RawDescriptionHelpFormatter
     usage = '%(prog)s --data_folder a_data_folder --result_folder your_result_folder'
