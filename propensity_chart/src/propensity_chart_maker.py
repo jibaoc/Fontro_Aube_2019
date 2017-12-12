@@ -702,8 +702,8 @@ def launcher():
     """Function that contains a parser to launch the program."""
     # description on how to use the program
     desc = """
-    From 2 query result files produced by the  tRNA program produce a figure
-    of kyte hydrophobicityfor those 2 sets of peptides within the files"""
+    From 2 query results files produced by the  tRNA program produce figures
+    of different features for those 2 sets of peptides within the files"""
     format_arg = argparse.RawDescriptionHelpFormatter
     usage = '%(prog)s --up query_up.xlsx --down query_down.xlsx'
     usage += '--output an outptut folder'
