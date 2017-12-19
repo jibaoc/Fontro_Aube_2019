@@ -8,10 +8,13 @@ import os
 from math import floor
 import copy
 from operator import itemgetter
+import sys
 
 list_name = ["AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT", "GA", "GC", "GG", "GT",
              "TA", "TC", "TT", "TG"]
-
+# Link each IUPAC letter to their corresponding codons
+iupac = {'Y': ['C', 'T'], 'R': ['A', 'G'], 'W': ['A', 'T'], 'S': ['G', 'C'], 'K': ['T', 'G'], 'M': ['C', 'A'],
+         'D': ['A', 'G', 'T'], 'V': ['A', 'C', 'G'], 'H': ['A', 'C', 'T'], 'B': ['C', 'G', 'T']}
 
 def next_dnt(my_dnt, last_nt):
 
@@ -82,6 +85,31 @@ def dinucleotide_calculator(seq):
 
     return dic
 
+def dinucleotide_calculator_bis(seq):
+    """
+    :return: (dictionary) a dictionary containing the frequency of every possible di-nucleotides
+    """
+    dic = {"AA": 0., "AT": 0., "AG": 0., "AC": 0., "TA": 0., "TT": 0., "TG": 0., "TC": 0.,
+           "GA": 0., "GT": 0., "GG": 0., "GC": 0., "CA": 0., "CT": 0., "CG": 0., "CC": 0.}
+
+    cur = {"AA": 0., "AT": 0., "AG": 0., "AC": 0., "TA": 0., "TT": 0., "TG": 0., "TC": 0.,
+           "GA": 0., "GT": 0., "GG": 0., "GC": 0., "CA": 0., "CT": 0., "CG": 0., "CC": 0.}
+    if len(seq) > 1:
+        for j in range(len(seq) - 1):
+            cur[seq[j:j + 2]] += 1
+        for key in dic.keys():
+            dic[key] += float(cur[key]) / (len(seq) - 1)
+
+    for nt1 in iupac.keys():
+        for nt2 in iupac.keys():
+            dic[nt1 + nt2] = 0.
+            for letter1 in iupac[nt1]:
+                for letter2 in iupac[nt2]:
+                    dic[nt1 + nt2] += dic[letter1 + letter2]
+    print(dic)
+    return dic
+
+
 
 def flexible_dnt_sequence_generator(length, dnt_list):
     seq = ""
@@ -118,7 +146,172 @@ def flexible_dnt_sequence_generator(length, dnt_list):
     return my_seq, dnt_prop_txt, dnt_prop
 
 
+def ctrl_dic_adapter(dic):
+    res_dic = {}
+    for key in dic.keys():
+        if key != "all":
+           res_dic[key] = float(dic[key])/dic["all"]
+    list_key = res_dic.keys()
+    tmp = 0.
+    for key in list_key:
+        res_dic[key] = res_dic[key] + tmp
+        tmp = res_dic[key]
+    sorted_res = sorted(res_dic.items(), key=lambda l: l[1], reverse=False)
+    interval_dic = {}
+    for i in range(len(sorted_res)):
+        if i == 0:
+            interval_dic[sorted_res[i][0]] = [0, sorted_res[i][1]]
+        elif i < len(sorted_res)-1:
+            interval_dic[sorted_res[i][0]] = [sorted_res[i-1][1], sorted_res[i][1]]
+        else:
+            interval_dic[sorted_res[i][0]] = [sorted_res[i-1][1], sorted_res[i][1] + 0.00000001]
+    return interval_dic
 
+
+def get_cur_codon(ctr_dic, value):
+    for key in ctr_dic.keys():
+        if ctr_dic[key][0] <= value < ctr_dic[key][1]:
+            return key
+    return None
+
+
+
+def exon_sequence_generator(length, ctrl, dnt_interest):
+    file_dir = os.path.dirname(os.path.realpath(__file__))
+    sys.path.insert(0, file_dir + "/control_dic/")
+    mod = __import__(ctrl + "_dic")
+    seq = ""
+    ctrl_dic = ctrl_dic_adapter(mod.dc)
+
+
+    for i in range(length/3):
+        codon = get_cur_codon(ctrl_dic, random.random())
+        if codon is None:
+            print("Something went wrong ! ")
+            exit(1)
+        seq += str(codon)
+
+    if dnt_interest is not None:
+        seq = list(seq)
+        dnt_prop = dinucleotide_calculator_bis("".join(seq))
+
+        if dnt_prop[dnt_interest[0]] > dnt_interest[1]:
+            reg = "-"
+        else:
+            reg = "+"
+        temp_reg = reg
+        print(str(dnt_prop[dnt_interest[0]]) + " - " + str(dnt_interest[1]) + " - " + str(reg))
+        g=0
+        while temp_reg == reg and g==0:
+            if reg == "+":
+                val = random.randint(0, len(seq)-2)
+                if dnt_interest[0][0] in ["A", "T", "G", "C"]:
+                    seq[val] = dnt_interest[0][0]
+                else:
+                    seq[val] = iupac[dnt_interest[0][0]][random.randint(0, len(iupac[dnt_interest[0][0]])-1)]
+                if dnt_interest[0][1] in ["A", "T", "G", "C"]:
+                    seq[val+1] = dnt_interest[0][1]
+                else:
+                    seq[val+1] = iupac[dnt_interest[0][1]][random.randint(0, len(iupac[dnt_interest[0][1]])-1)]
+            else:
+                print("already enriched")
+                break
+            dnt_prop = dinucleotide_calculator_bis("".join(seq))
+            print("".join(seq))
+            print(str(dnt_prop[dnt_interest[0]]) + " - " + str(dnt_interest[1]) + " - " + str(reg) + " -" + str(temp_reg))
+            if dnt_prop[dnt_interest[0]] >= dnt_interest[1]:
+                print("ok")
+                temp_reg = "-"
+            else:
+                print("ko")
+                temp_reg = "+"
+            g=0
+        seq = "".join(seq)
+    dnt_prop_txt = ""
+    dnt_prop = dinucleotide_calculator_bis(seq)
+    for key in dnt_prop.keys():
+        dnt_prop_txt += key + ": " + str(dnt_prop[key]) + " | "
+
+    dnt_prop_txt = dnt_prop_txt[0:len(dnt_prop_txt) - 3]
+
+    return seq, dnt_prop_txt, dnt_prop
+
+# with hexa nt control
+"""
+def dic_adapter(ctrl_dic, key):
+    new_dic = {}
+    list_key = [key + "A", key + "C", key + "G", key + "T"]
+    count = 0.
+    for key in list_key:
+        val = ctrl_dic[key]
+        new_dic[key] = val
+        count += val
+
+    new_dic["all"] = count
+    res_dic = ctrl_dic_adapter(new_dic)
+    return res_dic
+
+def exon_sequence_generator2(length, ctrl, dnt_interest):
+    file_dir = os.path.dirname(os.path.realpath(__file__))
+    sys.path.insert(0, file_dir + "/control_dic/")
+    mod = __import__(ctrl + "_dic")
+    ctrl_dic = ctrl_dic_adapter(mod.d6)
+
+    codon = get_cur_codon(ctrl_dic, random.random())
+    seq = codon
+    for i in range(length-6):
+        cur_dic = dic_adapter(mod.d6, seq[-5:])
+        codon = get_cur_codon(cur_dic, random.random())
+        if codon is None:
+            print("Something went wrong ! ")
+            exit(1)
+        seq += codon[-1]
+
+
+    if dnt_interest is not None:
+        seq = list(seq)
+        dnt_prop = dinucleotide_calculator("".join(seq))
+
+        if dnt_prop[dnt_interest[0]] > dnt_interest[1]:
+            reg = "-"
+        else:
+            reg = "+"
+        temp_reg = reg
+        print(str(dnt_prop[dnt_interest[0]]) + " - " + str(dnt_interest[1]) + " - " + str(reg))
+        g=0
+        while temp_reg == reg and g==0:
+            if reg == "+":
+                val = random.randint(0, len(seq)-2)
+                if dnt_interest[0][0] in ["A", "T", "G", "C"]:
+                    seq[val] = dnt_interest[0][0]
+                else:
+                    seq[val] = iupac[dnt_interest[0][0]][random.randint(0, len(iupac[dnt_interest[0][0]]))]
+                if dnt_interest[0][1] in ["A", "T", "G", "C"]:
+                    seq[val] = dnt_interest[0][1]
+                else:
+                    seq[val] = iupac[dnt_interest[0][1]][random.randint(0, len(iupac[dnt_interest[0][1]]))]
+            else:
+                print("exiting")
+                break
+            dnt_prop = dinucleotide_calculator("".join(seq))
+            print(str(dnt_prop[dnt_interest[0]]) + " - " + str(dnt_interest[1]) + " - " + str(reg) + " -" + str(temp_reg))
+            if dnt_prop[dnt_interest[0]] >= dnt_interest[1]:
+                print("ok")
+                temp_reg = "-"
+            else:
+                print("ko")
+                temp_reg = "+"
+            g=0
+        seq = "".join(seq)
+    dnt_prop_txt = ""
+    dnt_prop = dinucleotide_calculator(seq)
+    for key in dnt_prop.keys():
+        dnt_prop_txt += key + ": " + str(dnt_prop[key]) + " | "
+
+    dnt_prop_txt = dnt_prop_txt[0:len(dnt_prop_txt) - 3]
+
+    return seq, dnt_prop_txt, dnt_prop
+"""
 
 def header_dnt_generator(length, header_text, num_seq):
     header = ">seq" + str(num_seq) + " | length : " +  str(length) + " | " + header_text
@@ -131,6 +324,20 @@ def fasta_dnt_generator(size_int, dnt_list , number_seq, output, out_name):
         for i in range(1, number_seq+1):
             length = random.randint(size_int[0], size_int[1])
             seq, text_header, dnt_prop = flexible_dnt_sequence_generator(length, dnt_list)
+            for j in range(len(list_name)):
+                res_stat[j] += dnt_prop[list_name[j]]
+            header = header_dnt_generator(len(seq), text_header, i)
+            outfile.write(header + "\n" + seq + "\n")
+    for j in range(len(res_stat)):
+        res_stat[j] = res_stat[j] / number_seq
+    return res_stat
+
+def ctrl_fasta_dnt_generator(size_int, dnt_interest , number_seq, output, out_name, ctrl):
+    res_stat = [0 for i in range(16)]
+    with open(output + out_name + ".fasta", "w") as outfile:
+        for i in range(1, number_seq+1):
+            length = random.randint(size_int[0], size_int[1])
+            seq, text_header, dnt_prop = exon_sequence_generator(length, ctrl, dnt_interest)
             for j in range(len(list_name)):
                 res_stat[j] += dnt_prop[list_name[j]]
             header = header_dnt_generator(len(seq), text_header, i)
@@ -344,6 +551,7 @@ def display_dnt_prop(list_dnt, message):
     print(res)
 
 
+
 def launcher():
     """
     function that contains a parser to launch the program
@@ -378,6 +586,12 @@ def launcher():
     parser.add_argument('--flexible', dest='flexible', help="true if you want to allow a litle distortion in your given"
                                                             " proportions, false else",
                         default=False)
+    parser.add_argument('--ctrl', dest='ctrl', help="control dic we want to use",
+                        default=None)
+    parser.add_argument('--dnt', dest='dnt', help="the dnt you want to enriched in the ctrl (ACE/CCE/ALL) sequences",
+                        default=None)
+    parser.add_argument('--freq', dest='freq', help="the  freq of the dnt you want to enriched in the ctrl (ACE/CCE/ALL) sequences",
+                        default=None)
 
 
     parser.add_argument('--AA', dest='AA', help="the proportion of AA in the fasta file",
@@ -463,27 +677,36 @@ def launcher():
 
     res = test_dnt_nt(nt_tuple, dnt_tuple)
     size_int = [args.size_inf, args.size_max]
-    if res == "nt":
+    if args.ctrl is None:
+        if res == "nt":
 
-        args.prop_A, args.prop_T, args.prop_C, args.prop_G = \
-            handling_nt_proportion((args.prop_A, args.prop_T, args.prop_C, args.prop_G))
+            args.prop_A, args.prop_T, args.prop_C, args.prop_G = \
+                handling_nt_proportion((args.prop_A, args.prop_T, args.prop_C, args.prop_G))
 
-        print("Nucleotides proportion : ")
-        print("A : " + str(args.prop_A) + " - C : " + str(args.prop_C) + " - G : " + str(args.prop_G) + " - T : " +
-            str(args.prop_T))
+            print("Nucleotides proportion : ")
+            print("A : " + str(args.prop_A) + " - C : " + str(args.prop_C) + " - G : " + str(args.prop_G) + " - T : " +
+                str(args.prop_T))
 
 
-        fasta_generator(size_int,  args.prop_A, args.prop_T, args.prop_C, args.prop_G, args.nbr_seq, args.output,
-                        args.filename, args.flexible)
+            fasta_generator(size_int,  args.prop_A, args.prop_T, args.prop_C, args.prop_G, args.nbr_seq, args.output,
+                            args.filename, args.flexible)
 
-    elif res == "dnt":
-        dnt_tuple = handling_nt_proportion(dnt_tuple)
-        display_dnt_prop(dnt_tuple, "di-nucleotides proportions")
-        res_stat = fasta_dnt_generator(size_int, dnt_tuple, args.nbr_seq, args.output, args.filename)
+        elif res == "dnt":
+            dnt_tuple = handling_nt_proportion(dnt_tuple)
+            display_dnt_prop(dnt_tuple, "di-nucleotides proportions")
+            res_stat = fasta_dnt_generator(size_int, dnt_tuple, args.nbr_seq, args.output, args.filename)
+            display_dnt_prop(res_stat, "proportion in the file : ")
+
+        else:
+            print("ouch will be hard")
+    else:
+        if args.dnt is not None and args.freq is not None:
+            interest_dnt = [args.dnt, float(args.freq)]
+        else:
+            interest_dnt = None
+        res_stat = ctrl_fasta_dnt_generator(size_int, interest_dnt, args.nbr_seq, args.output, args.filename, args.ctrl)
         display_dnt_prop(res_stat, "proportion in the file : ")
 
-    else:
-        print("ouch will be hard")
 
 
 if __name__ == "__main__":
