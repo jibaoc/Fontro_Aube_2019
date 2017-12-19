@@ -25,6 +25,117 @@ iupac = {'Y': ['C', 'T'], 'R': ['A', 'G'], 'W': ['A', 'T'], 'S': ['G', 'C'], 'K'
 #         Functions            #
 ################################
 
+#################################################################
+# generation of fasta sequence based on nucleotide proportion
+#################################################################
+
+
+def sequence_generator(length, a_prop, t_prop, c_prop, g_prop):
+    """
+    :param length: (int) the length of the sequence we will create
+    :param a_prop: (float) proportion of A in the sequence we will create
+    :param t_prop: (float) proportion of t in the sequence we will create
+    :param c_prop: (float) proportion of c in the sequence we will create
+    :param g_prop: (float) proportion of g in the sequence we will create
+    :return: (string) a sequence of length 'length' and with the proportion of nucleotides very near of the values
+    given by the variables a_prop, c_prop, g_prop, t_prop
+    """
+    seq = "A" * int(floor(length * a_prop)) + "C" * int(floor(length * c_prop)) + "G" * int(floor(length * g_prop)) + \
+          "T" * int(floor(length * t_prop))
+
+    if len(seq) != length:
+        new_seq = "A" * int(floor(100 * a_prop)) + "C" * int(floor(100 * c_prop)) + "G" * int(floor(100 * g_prop)) + \
+          "T" * int(floor(100 * t_prop))
+        while len(seq) != length:
+            seq += new_seq[random.randint(0, len(new_seq)-1)]
+
+    rseq = "".join(random.sample(seq, len(seq)))
+    fseq = ""
+    i = 0
+    while i < len(rseq):
+        fseq += rseq[i:i+70] + "\r"
+        i += 70
+
+    ap = round(float(rseq.count("A")) / len(rseq), 2)
+    cp = round(float(rseq.count("C")) / len(rseq), 2)
+    gp = round(float(rseq.count("G")) / len(rseq), 2)
+    tp = round(float(rseq.count("T")) / len(rseq), 2)
+    return fseq, ap, cp, gp, tp
+
+
+def flexible_sequence_generator(length, a_prop, t_prop, c_prop, g_prop):
+    """
+    :param length: (int) the length of the sequence we will create
+    :param a_prop: (float) proportion of A in the sequence we will create
+    :param t_prop: (float) proportion of t in the sequence we will create
+    :param c_prop: (float) proportion of c in the sequence we will create
+    :param g_prop: (float) proportion of g in the sequence we will create
+    :return: (string) a sequence of length 'length' and with the proportion of nucleotides quite near of the values
+    given by the variables a_prop, c_prop, g_prop, t_prop
+    """
+    seq = ""
+    new_seq = "A" * int(round(100 * a_prop)) + "C" * int(round(100 * c_prop)) + "G" * int(round(100 * g_prop)) + \
+        "T" * int(round(100 * t_prop))
+    while len(seq) != length:
+
+        seq += new_seq[random.randint(0, len(new_seq)-1)]
+    fseq = ""
+    i = 0
+    while i < len(seq):
+        fseq += seq[i:i+70] + "\r"
+        i += 70
+
+    ap = round(float(seq.count("A")) / len(seq), 2)
+    cp = round(float(seq.count("C")) / len(seq), 2)
+    gp = round(float(seq.count("G")) / len(seq), 2)
+    tp = round(float(seq.count("T")) / len(seq), 2)
+    return fseq, ap, cp, gp, tp
+
+
+def header_generator(length, a_prop, c_prop, g_prop, t_prop, num_seq):
+    """
+    :param length: (int) the length of the sequence we will create
+    :param a_prop: (float) proportion of A in the sequence we will create
+    :param t_prop: (float) proportion of t in the sequence we will create
+    :param c_prop: (float) proportion of c in the sequence we will create
+    :param g_prop: (float) proportion of g in the sequence we will create
+    :param num_seq: (int) the number of sequence we will create
+    :return: (string) the header of a sequence
+    """
+    header = ">seq" + str(num_seq) + " | A : " + str(a_prop) + " - C : " + str(c_prop) + " - G : " + str(g_prop)
+    header += " - T : " + str(t_prop) + " | length : " + str(length)
+    return header
+
+
+def fasta_generator(size_int,  a_prop, t_prop, c_prop, g_prop, number_seq, output, out_name, flexible):
+    """
+    Write a fasta file of number_seq sequences having a size in  'size_int' and proportion corresponding to a_prop,
+    t_prop, c_prop, g_prop
+    :param size_int: (list of 2 int) the min size possible and the max size possible of the sequences we want to create
+    :param a_prop: (float) proportion of A in the sequence we will create
+    :param t_prop: (float) proportion of t in the sequence we will create
+    :param c_prop: (float) proportion of c in the sequence we will create
+    :param g_prop: (float) proportion of g in the sequence we will create
+    :param number_seq: (int) the number of sequence we will create
+    :param output: (string) path where the fasta file will be created
+    :param out_name: (string) the name of the fasta file to create
+    :param flexible: (boolean) True if the proportion of the sequence should only be close to what the user specified
+    False if the proportion have to be equal or very close  to what the user specified
+    """
+    with open(output + out_name + ".fasta", "w") as outfile:
+        for i in range(1, number_seq+1):
+            length = random.randint(size_int[0], size_int[1])
+            if flexible:
+                seq, ap, cp, gp, tp = flexible_sequence_generator(length, a_prop, t_prop, c_prop, g_prop)
+            else:
+                seq, ap, cp, gp, tp = sequence_generator(length, a_prop, t_prop, c_prop, g_prop)
+            header = header_generator(length, ap, cp, gp, tp, i)
+            outfile.write(header + "\n" + seq + "\n")
+
+#################################################################
+# generation of fasta sequence based on di-nucleotide proportion
+#################################################################
+
 
 def next_dnt(my_dnt, last_nt):
     """
@@ -88,34 +199,6 @@ def dinucleotide_calculator(seq):
     return dic
 
 
-def dinucleotide_calculator_bis(seq):
-    """
-    Calculate the di-nucleotide frequency in the sequence.
-    For di-nucleotides expanded to iupac code.
-
-    :param seq: (string) a nucleotide sequence
-    :return: (dictionary) a dictionary containing the frequency of every possible di-nucleotides
-    """
-    dic = {"AA": 0., "AT": 0., "AG": 0., "AC": 0., "TA": 0., "TT": 0., "TG": 0., "TC": 0.,
-           "GA": 0., "GT": 0., "GG": 0., "GC": 0., "CA": 0., "CT": 0., "CG": 0., "CC": 0.}
-
-    cur = {"AA": 0., "AT": 0., "AG": 0., "AC": 0., "TA": 0., "TT": 0., "TG": 0., "TC": 0.,
-           "GA": 0., "GT": 0., "GG": 0., "GC": 0., "CA": 0., "CT": 0., "CG": 0., "CC": 0.}
-    if len(seq) > 1:
-        for j in range(len(seq) - 1):
-            cur[seq[j:j + 2]] += 1
-        for key in dic.keys():
-            dic[key] += float(cur[key]) / (len(seq) - 1)
-    # Calculation of ambiguous di-nucleotide frequency
-    for nt1 in iupac.keys():
-        for nt2 in iupac.keys():
-            dic[nt1 + nt2] = 0.
-            for letter1 in iupac[nt1]:
-                for letter2 in iupac[nt2]:
-                    dic[nt1 + nt2] += dic[letter1 + letter2]
-    return dic
-
-
 def flexible_dnt_sequence_generator(length, dnt_list):
     """
     Generation of completely random sequences.
@@ -163,6 +246,79 @@ def flexible_dnt_sequence_generator(length, dnt_list):
     dnt_prop_txt = dnt_prop_txt[0:len(dnt_prop_txt)-3]
 
     return my_seq, dnt_prop_txt, dnt_prop
+
+
+def header_dnt_generator(length, header_text, num_seq):
+    """
+    Generation of an header for the fasta sequence.
+
+    :param length: (int) the length of the sequence
+    :param header_text: (string) the text of the header : the dnt frequencies
+    :param num_seq: (int) the number of the sequence generated.
+    :return:
+    """
+    header = ">seq" + str(num_seq) + " | length : " + str(length) + " | " + header_text
+    return header
+
+
+def fasta_dnt_generator(size_int, dnt_list, number_seq, output, out_name):
+    """
+    Generate a fasta file containing random sequences
+    generated with a list of dnt frequencies.
+
+    :param size_int:(list of 2 float) first float : min length possible
+    of the sequences in the fasta file. second float : max length possible of
+    the sequences in the fasta file.
+    :param dnt_list: (list of float)
+    :param number_seq: (int) the number of sequences we want to generate.
+    :param output: (string) the folder where the file will be created
+    :param out_name: (string) the name of the fasta file.
+    """
+    res_stat = [0 for i in range(16)]
+    with open(output + out_name + ".fasta", "w") as outfile:
+        for i in range(1, number_seq+1):
+            length = random.randint(size_int[0], size_int[1])
+            seq, text_header, dnt_prop = flexible_dnt_sequence_generator(length, dnt_list)
+            for j in range(len(list_name)):
+                res_stat[j] += dnt_prop[list_name[j]]
+            header = header_dnt_generator(len(seq), text_header, i)
+            outfile.write(header + "\n" + seq + "\n")
+    for j in range(len(res_stat)):
+        res_stat[j] /= number_seq
+    return res_stat
+
+#################################################################
+# generation of fasta sequence based on di-nucleotide proportion
+# and codon frequency of ACCE/CCE/ALL fasterDB exons
+#################################################################
+
+
+def dinucleotide_calculator_bis(seq):
+    """
+    Calculate the di-nucleotide frequency in the sequence.
+    For di-nucleotides expanded to iupac code.
+
+    :param seq: (string) a nucleotide sequence
+    :return: (dictionary) a dictionary containing the frequency of every possible di-nucleotides
+    """
+    dic = {"AA": 0., "AT": 0., "AG": 0., "AC": 0., "TA": 0., "TT": 0., "TG": 0., "TC": 0.,
+           "GA": 0., "GT": 0., "GG": 0., "GC": 0., "CA": 0., "CT": 0., "CG": 0., "CC": 0.}
+
+    cur = {"AA": 0., "AT": 0., "AG": 0., "AC": 0., "TA": 0., "TT": 0., "TG": 0., "TC": 0.,
+           "GA": 0., "GT": 0., "GG": 0., "GC": 0., "CA": 0., "CT": 0., "CG": 0., "CC": 0.}
+    if len(seq) > 1:
+        for j in range(len(seq) - 1):
+            cur[seq[j:j + 2]] += 1
+        for key in dic.keys():
+            dic[key] += float(cur[key]) / (len(seq) - 1)
+    # Calculation of ambiguous di-nucleotide frequency
+    for nt1 in iupac.keys():
+        for nt2 in iupac.keys():
+            dic[nt1 + nt2] = 0.
+            for letter1 in iupac[nt1]:
+                for letter2 in iupac[nt2]:
+                    dic[nt1 + nt2] += dic[letter1 + letter2]
+    return dic
 
 
 def ctrl_dic_adapter(dic):
@@ -303,46 +459,6 @@ def exon_sequence_generator(length, ctrl, dnt_interest):
     return seq, dnt_prop_txt, dnt_prop
 
 
-def header_dnt_generator(length, header_text, num_seq):
-    """
-    Generation of an header for the fasta sequence.
-
-    :param length: (int) the length of the sequence
-    :param header_text: (string) the text of the header : the dnt frequencies
-    :param num_seq: (int) the number of the sequence generated.
-    :return:
-    """
-    header = ">seq" + str(num_seq) + " | length : " + str(length) + " | " + header_text
-    return header
-
-
-def fasta_dnt_generator(size_int, dnt_list, number_seq, output, out_name):
-    """
-    Generate a fasta file containing random sequences
-    generated with a list of dnt frequencies.
-
-    :param size_int:(list of 2 float) first float : min length possible
-    of the sequences in the fasta file. second float : max length possible of
-    the sequences in the fasta file.
-    :param dnt_list: (list of float)
-    :param number_seq: (int) the number of sequences we want to generate.
-    :param output: (string) the folder where the file will be created
-    :param out_name: (string) the name of the fasta file.
-    """
-    res_stat = [0 for i in range(16)]
-    with open(output + out_name + ".fasta", "w") as outfile:
-        for i in range(1, number_seq+1):
-            length = random.randint(size_int[0], size_int[1])
-            seq, text_header, dnt_prop = flexible_dnt_sequence_generator(length, dnt_list)
-            for j in range(len(list_name)):
-                res_stat[j] += dnt_prop[list_name[j]]
-            header = header_dnt_generator(len(seq), text_header, i)
-            outfile.write(header + "\n" + seq + "\n")
-    for j in range(len(res_stat)):
-        res_stat[j] /= number_seq
-    return res_stat
-
-
 def ctrl_fasta_dnt_generator(size_int, dnt_interest, number_seq, output, out_name, ctrl):
     """
 
@@ -367,108 +483,9 @@ def ctrl_fasta_dnt_generator(size_int, dnt_interest, number_seq, output, out_nam
         res_stat[j] /= number_seq
     return res_stat
 
-
-def sequence_generator(length, a_prop, t_prop, c_prop, g_prop):
-    """
-    :param length: (int) the length of the sequence we will create
-    :param a_prop: (float) proportion of A in the sequence we will create
-    :param t_prop: (float) proportion of t in the sequence we will create
-    :param c_prop: (float) proportion of c in the sequence we will create
-    :param g_prop: (float) proportion of g in the sequence we will create
-    :return: (string) a sequence of length 'length' and with the proportion of nucleotides very near of the values
-    given by the variables a_prop, c_prop, g_prop, t_prop
-    """
-    seq = "A" * int(floor(length * a_prop)) + "C" * int(floor(length * c_prop)) + "G" * int(floor(length * g_prop)) + \
-          "T" * int(floor(length * t_prop))
-
-    if len(seq) != length:
-        new_seq = "A" * int(floor(100 * a_prop)) + "C" * int(floor(100 * c_prop)) + "G" * int(floor(100 * g_prop)) + \
-          "T" * int(floor(100 * t_prop))
-        while len(seq) != length:
-            seq += new_seq[random.randint(0, len(new_seq)-1)]
-
-    rseq = "".join(random.sample(seq, len(seq)))
-    fseq = ""
-    i = 0
-    while i < len(rseq):
-        fseq += rseq[i:i+70] + "\r"
-        i += 70
-
-    ap = round(float(rseq.count("A")) / len(rseq), 2)
-    cp = round(float(rseq.count("C")) / len(rseq), 2)
-    gp = round(float(rseq.count("G")) / len(rseq), 2)
-    tp = round(float(rseq.count("T")) / len(rseq), 2)
-    return fseq, ap, cp, gp, tp
-
-
-def flexible_sequence_generator(length, a_prop, t_prop, c_prop, g_prop):
-    """
-    :param length: (int) the length of the sequence we will create
-    :param a_prop: (float) proportion of A in the sequence we will create
-    :param t_prop: (float) proportion of t in the sequence we will create
-    :param c_prop: (float) proportion of c in the sequence we will create
-    :param g_prop: (float) proportion of g in the sequence we will create
-    :return: (string) a sequence of length 'length' and with the proportion of nucleotides quite near of the values
-    given by the variables a_prop, c_prop, g_prop, t_prop
-    """
-    seq = ""
-    new_seq = "A" * int(round(100 * a_prop)) + "C" * int(round(100 * c_prop)) + "G" * int(round(100 * g_prop)) + \
-        "T" * int(round(100 * t_prop))
-    while len(seq) != length:
-
-        seq += new_seq[random.randint(0, len(new_seq)-1)]
-    fseq = ""
-    i = 0
-    while i < len(seq):
-        fseq += seq[i:i+70] + "\r"
-        i += 70
-
-    ap = round(float(seq.count("A")) / len(seq), 2)
-    cp = round(float(seq.count("C")) / len(seq), 2)
-    gp = round(float(seq.count("G")) / len(seq), 2)
-    tp = round(float(seq.count("T")) / len(seq), 2)
-    return fseq, ap, cp, gp, tp
-
-
-def header_generator(length, a_prop, c_prop, g_prop, t_prop, num_seq):
-    """
-    :param length: (int) the length of the sequence we will create
-    :param a_prop: (float) proportion of A in the sequence we will create
-    :param t_prop: (float) proportion of t in the sequence we will create
-    :param c_prop: (float) proportion of c in the sequence we will create
-    :param g_prop: (float) proportion of g in the sequence we will create
-    :param num_seq: (int) the number of sequence we will create
-    :return: (string) the header of a sequence
-    """
-    header = ">seq" + str(num_seq) + " | A : " + str(a_prop) + " - C : " + str(c_prop) + " - G : " + str(g_prop)
-    header += " - T : " + str(t_prop) + " | length : " + str(length)
-    return header
-
-
-def fasta_generator(size_int,  a_prop, t_prop, c_prop, g_prop, number_seq, output, out_name, flexible):
-    """
-    Write a fasta file of number_seq sequences having a size in  'size_int' and proportion corresponding to a_prop,
-    t_prop, c_prop, g_prop
-    :param size_int: (list of 2 int) the min size possible and the max size possible of the sequences we want to create
-    :param a_prop: (float) proportion of A in the sequence we will create
-    :param t_prop: (float) proportion of t in the sequence we will create
-    :param c_prop: (float) proportion of c in the sequence we will create
-    :param g_prop: (float) proportion of g in the sequence we will create
-    :param number_seq: (int) the number of sequence we will create
-    :param output: (string) path where the fasta file will be created
-    :param out_name: (string) the name of the fasta file to create
-    :param flexible: (boolean) True if the proportion of the sequence should only be close to what the user specified
-    False if the proportion have to be equal or very close  to what the user specified
-    """
-    with open(output + out_name + ".fasta", "w") as outfile:
-        for i in range(1, number_seq+1):
-            length = random.randint(size_int[0], size_int[1])
-            if flexible:
-                seq, ap, cp, gp, tp = flexible_sequence_generator(length, a_prop, t_prop, c_prop, g_prop)
-            else:
-                seq, ap, cp, gp, tp = sequence_generator(length, a_prop, t_prop, c_prop, g_prop)
-            header = header_generator(length, ap, cp, gp, tp, i)
-            outfile.write(header + "\n" + seq + "\n")
+######################################################
+#             Manager functions
+######################################################
 
 
 def my_format(list_prop):
