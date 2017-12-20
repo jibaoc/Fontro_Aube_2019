@@ -40,9 +40,9 @@ def translator(seq, offset):
     """
     res = ""
     if offset == 1:
-        offset =2
+        offset = 2
     elif offset == 2:
-        offset =1
+        offset = 1
     codon = []
     for i in range(offset, len(seq)-2, 3):
         res += codon2aminoAcid[seq[i:i+3]]
@@ -69,8 +69,8 @@ def dic_sequence(cnx, exon_type):
     cursor.execute(query)
     query_result = cursor.fetchall()  # saving all the table "hsapiens_exonpeptides_filtered" from fasterDB
     res = []
-    for tuple in query_result:
-        res.append([tuple[0]] + translator(tuple[1], tuple[2]))
+    for mytuple in query_result:
+        res.append([mytuple[0]] + translator(mytuple[1], mytuple[2]))
     return res
 
 
@@ -102,7 +102,7 @@ def create_an_hexanucleotid_dic(tuple_list):
     count = 0
     for key in dic.keys():
         count += dic[key]
-    dic["all"] =  count
+    dic["all"] = count
     return dic
 
 
@@ -118,7 +118,7 @@ def calcul_dic_codon(dic, seq):
             dic[codon] = 1
         else:
             dic[codon] += 1
-    return  dic
+    return dic
 
 
 def create_a_codon_dic(tuple_list):
@@ -151,7 +151,7 @@ def calcul_dic_aa(dic, seq):
             dic[aa] = 1
         else:
             dic[aa] += 1
-    return  dic
+    return dic
 
 
 def create_an_aa_dic(tuple_list):
@@ -186,7 +186,7 @@ def create_a_custom_dic(aa_dic, feature_dic):
     for key in feature_dic.keys():
         res[key] = 0
         for aa in feature_dic[key]:
-            if aa in  aa_dic.keys():
+            if aa in aa_dic.keys():
                 res[key] += aa_dic[aa]
     return res
 
