@@ -173,6 +173,18 @@ def create_an_aa_dic(tuple_list):
     return dic
 
 
+def create_a_codon_pos_dic(codon_dic):
+    nt_pos_dic = {"A1":0, "A2":0, "A3":0, "C1":0, "C2":0, "C3":0, "G1":0, "G2":0, "G3":0, "T1":0, "T2":0, "T3":0}
+    count = 0
+    for i in range(0, 3, 1):
+        for codon in codon_dic.keys():
+            if codon != "all":
+                count += codon_dic[codon]
+                nt_pos_dic[codon[i] + str(i+1)] += codon_dic[codon]
+    nt_pos_dic['all'] = count / 3
+    return nt_pos_dic
+
+
 def create_a_custom_dic(aa_dic, feature_dic):
     """
 
@@ -236,6 +248,8 @@ def create_dic():
         d6 = create_an_hexanucleotid_dic(tuple_list)
         print("codon")
         dc = create_a_codon_dic(tuple_list)
+        print("codon pos")
+        dcp = create_a_codon_pos_dic(dc)
         print("aa")
         da = create_an_aa_dic(tuple_list)
         print("sh")
@@ -270,6 +284,7 @@ def create_dic():
         with open(file_dir + "/control_dic/" + exon_type + "_dic.py", "w") as out_file:
             out_file.write("d6 = " + str(d6) + "\n")
             out_file.write("dc = " + str(dc) + "\n")
+            out_file.write("dcp = " + str(dcp) + "\n")
             out_file.write("da = " + str(da) + "\n")
             out_file.write("sh = " + str(sh) + "\n")
             out_file.write("hy = " + str(hy) + "\n")
