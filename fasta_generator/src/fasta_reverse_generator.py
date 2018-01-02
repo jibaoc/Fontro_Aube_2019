@@ -155,9 +155,10 @@ def sequence_generator(length, prop, feature, ctrl):
     - tp : (float) the Thymine proportiob in  fseq
     - ftp : (float) the proportion of the feature 'feature' in fseq
     """
-    file_dir = os.path.dirname(os.path.realpath(__file__))
-    sys.path.insert(0, file_dir + "/control_dic/")
-    mod = __import__(ctrl + "_dic")
+    if ctrl != "RD":
+        file_dir = os.path.dirname(os.path.realpath(__file__))
+        sys.path.insert(0, file_dir + "/control_dic/")
+        mod = __import__(ctrl + "_dic")
 
     seq = ""
     ft_chooser = "F" * int(prop) + "N" * int(100 - prop)
@@ -174,12 +175,16 @@ def sequence_generator(length, prop, feature, ctrl):
             amino_acid_list = new_seq
         else:
             ft_count += 1
-
-        aa_dic = generate_dic(mod.da, amino_acid_list)
-        aa_chosen = get_cur_val(aa_dic, random.random())
-        codon_list = amino_acid2codon[aa_chosen].split(",")
-        codon_dic = generate_dic(mod.dc, codon_list)
-        codon_chosen = get_cur_val(codon_dic, random.random())
+        if ctrl != "RD":
+            aa_dic = generate_dic(mod.da, amino_acid_list)
+            aa_chosen = get_cur_val(aa_dic, random.random())
+            codon_list = amino_acid2codon[aa_chosen].split(",")
+            codon_dic = generate_dic(mod.dc, codon_list)
+            codon_chosen = get_cur_val(codon_dic, random.random())
+        else:
+            aa_chosen = amino_acid_list[random.randint(0, len(amino_acid_list)-1)]
+            codon_list = amino_acid2codon[aa_chosen].split(",")
+            codon_chosen = codon_list[random.randint(0, len(codon_list)-1)]
         seq += codon_chosen
 
     fseq = ""
@@ -315,7 +320,7 @@ def launcher():
                         default=300)
     parser.add_argument('--nbr_seq', dest='nbr_seq', help="the number of sequence in the fasta file",
                         default=300)
-    parser.add_argument('--ctrl', dest='ctrl', help="the control used for fasta generation",
+    parser.add_argument('--ctrl', dest='ctrl', help="the control used for fasta generation (CCE, ALL, ACE, RD)",
                         default="CCE")
 
     required_args = parser.add_argument_group("required arguments")
