@@ -6,6 +6,11 @@ codon2aminoAcid = dict(TTT="F", TTC="F", TTA="L", TTG="L", CTT="L", CTC="L", CTA
                        TGA="", TGG="W", CGT="R", CGC="R", CGA="R", CGG="R", AGT="S", AGC="S", AGA="R", AGG="R",
                        GGT="G", GGC="G", GGA="G", GGG="G")
 
+amino_acid2codon = {
+    "F": "TTT,TTC", "L": "TTA,TTG,CTT,CTC,CTA,CTG", "I": "ATT,ATC,ATA", "M": "ATG", "V": "GTT,GTC,GTA,GTG",
+    "S": "TCT,TCC,TCA,TCG,AGT,AGC", "P": "CCT,CCC,CCA,CCG", "T": "ACT,ACC,ACA,ACG", "A": "GCT,GCC,GCA,GCG",
+    "Y": "TAT,TAC", "*": "TAA,TAG,TGA", "H": "CAT,CAC", "Q": "CAA,CAG", "N": "AAT,AAC", "K": "AAA,AAG", "D": "GAT,GAC",
+    "E": "GAA,GAG", "C": "TGT,TGC", "W": "TGG", "R": "CGT,CGC,CGA,CGG,AGA,AGG", "G": "GGT,GGC,GGA,GGG"}
 
 # side chain properties:
 schain2aa = {
