@@ -307,7 +307,7 @@ def launcher():
     EPRS: P, E
     PEVK: P, E, V, K
     """,
-                                     usage='%(prog)s --input input_file.txt [--output an output folder] ')
+                                     usage='%(prog)s --feature a_feature_name --prob a_prob_name ')
     # Arguments for the parser
 
     parser.add_argument('--output', dest='output', help="An output folder",
@@ -332,7 +332,7 @@ def launcher():
     args = parser.parse_args()  # parsing arguments
 
     if args.filename == "result":
-        args.filename = args.feature + "_" + args.prop
+        args.filename = args.ctrl + "_" + args.feature + "_" + args.prop
 
     try:
         args.prop = int(args.prop)
