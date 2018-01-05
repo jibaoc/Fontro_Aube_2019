@@ -106,6 +106,40 @@ def create_an_hexanucleotid_dic(tuple_list):
     return dic
 
 
+def dinucleotide_calculator(dic, seq):
+    """
+    :param dic: (dictionary of int) the number of amino acid for a
+    given set of sequence
+    :param seq: (string) the current exons (cds) sequence studied
+    :return: (dictionary) a dictionary containing the frequency of every possible di-nucleotides
+    """
+
+    if len(seq) > 1:
+
+        for j in range(len(seq) - 1):
+            dic[seq[j:j + 2]] += 1
+    return dic
+
+
+def create_a_dnt_dic(tuple_list):
+    """
+    :param tuple_list:(list of list) each sublist corresponds to an exon.
+    Each sublist contains the genomic sequence, the codon sequence and the
+    encoded amino acid sequence of this exons
+    :return: a dictionary that contains the number of dnt
+    in all exons in tuple list
+    """
+    dic = {"AA": 0, "AT": 0, "AG": 0, "AC": 0, "TA": 0, "TT": 0, "TG": 0, "TC": 0,
+           "GA": 0, "GT": 0, "GG": 0, "GC": 0, "CA": 0, "CT": 0, "CG": 0, "CC": 0}
+    for i in range(len(tuple_list)):
+        dic = dinucleotide_calculator(dic, "".join(tuple_list[i][1]))
+    count = 0
+    for key in dic.keys():
+        count += dic[key]
+    dic["all"] = count
+    return dic
+
+
 def calcul_dic_codon(dic, seq):
     """
     :param dic: (dictionary of int) the number of codon for a
@@ -246,6 +280,8 @@ def create_dic():
         tuple_list = dic_sequence(cnx, exon_type)
         print("hexa")
         d6 = create_an_hexanucleotid_dic(tuple_list)
+        print("dnt")
+        ddnt = create_a_dnt_dic(tuple_list)
         print("codon")
         dc = create_a_codon_dic(tuple_list)
         print("codon pos")
@@ -283,6 +319,7 @@ def create_dic():
         print("writing")
         with open(file_dir + "/control_dic/" + exon_type + "_dic.py", "w") as out_file:
             out_file.write("d6 = " + str(d6) + "\n")
+            out_file.write("ddnt = " + str(ddnt) + "\n")
             out_file.write("dc = " + str(dc) + "\n")
             out_file.write("dcp = " + str(dcp) + "\n")
             out_file.write("da = " + str(da) + "\n")
