@@ -70,7 +70,7 @@ def dic_sequence(cnx, exon_type):
     query_result = cursor.fetchall()  # saving all the table "hsapiens_exonpeptides_filtered" from fasterDB
     res = []
     for mytuple in query_result:
-        res.append([mytuple[0]] + translator(mytuple[1], mytuple[2]))
+        res.append([mytuple[0]] + translator(mytuple[1], mytuple[2]) + [mytuple[1]])
     return res
 
 
@@ -87,6 +87,45 @@ def calcul_dic(dic, seq):
             dic[seq[i:i+6]] += 1
     return dic
 
+def calcul_nt_dic(dic, seq):
+    """
+    :param dic: (a dictionary of float) freq of the nt of interest
+    :param seq: (string) the nt sequence
+    :return: 'dic' completed
+    """
+    for i in range(len(seq)):
+        if seq[i] != "N":
+            if seq[i] not in dic.keys():
+                dic[seq[i]] = 1
+            else:
+                dic[seq[i]] += 1
+    return dic
+
+
+def create_a_nt_dic(tuple_list):
+    """
+
+    :param tuple_list: (list of list) each sublist corresponds to an exon.
+    Each sublist contains the geneomic sequence, the codon sequence and the
+    encoded amino acid sequence of this exons
+    :return: a dic of codon
+    """
+    dic = {}
+    for i in range(len(tuple_list)):
+        dic = calcul_nt_dic(dic, tuple_list[i][3])
+    count = 0
+    for key in dic.keys():
+        count += dic[key]
+    dic["all"] = count
+    dic["Y"] = dic["C"] + dic["T"]
+    dic["R"] = dic["A"] + dic["G"]
+    dic["W"] = dic["A"] + dic["T"]
+    dic["S"] = dic["C"] + dic["G"]
+    dic["K"] = dic["T"] + dic["G"]
+    dic["M"] = dic["C"] + dic["A"]
+
+    return dic
+
 
 def create_an_hexanucleotid_dic(tuple_list):
     """
@@ -98,7 +137,7 @@ def create_an_hexanucleotid_dic(tuple_list):
     """
     dic = {}
     for i in range(len(tuple_list)):
-        dic = calcul_dic(dic, tuple_list[i][0])
+        dic = calcul_dic(dic, tuple_list[i][3])
     count = 0
     for key in dic.keys():
         count += dic[key]
@@ -132,11 +171,17 @@ def create_a_dnt_dic(tuple_list):
     dic = {"AA": 0, "AT": 0, "AG": 0, "AC": 0, "TA": 0, "TT": 0, "TG": 0, "TC": 0,
            "GA": 0, "GT": 0, "GG": 0, "GC": 0, "CA": 0, "CT": 0, "CG": 0, "CC": 0}
     for i in range(len(tuple_list)):
-        dic = dinucleotide_calculator(dic, "".join(tuple_list[i][1]))
+        dic = dinucleotide_calculator(dic, tuple_list[i][3])
     count = 0
     for key in dic.keys():
         count += dic[key]
     dic["all"] = count
+    iu = {"Y": ["C", "T"], "R": ["A", "G"], "W": ["A", "T"], "S": ["G", "C"], "K": ["T", "G"],
+          "M": ["C", "A"]}
+    for k1 in iu.keys():
+        for k2 in iu.keys():
+            dic[k1 + k2] = dic[iu[k1][0] + iu[k2][0]] + dic[iu[k1][0] + iu[k2][1]] + dic[iu[k1][1] + iu[k2][0]] + \
+                           dic[iu[k1][1] + iu[k2][1]]
     return dic
 
 
@@ -216,6 +261,13 @@ def create_a_codon_pos_dic(codon_dic):
                 count += codon_dic[codon]
                 nt_pos_dic[codon[i] + str(i+1)] += codon_dic[codon]
     nt_pos_dic['all'] = count / 3
+    for i in ["1", "2", "3"]:
+        nt_pos_dic["Y" + i] = nt_pos_dic["C" + i] + nt_pos_dic["T" + i]
+        nt_pos_dic["R" + i] = nt_pos_dic["A" + i] + nt_pos_dic["G" + i]
+        nt_pos_dic["W" + i] = nt_pos_dic["A" + i] + nt_pos_dic["T" + i]
+        nt_pos_dic["S" + i] = nt_pos_dic["C" + i] + nt_pos_dic["G" + i]
+        nt_pos_dic["K" + i] = nt_pos_dic["T" + i] + nt_pos_dic["G" + i]
+        nt_pos_dic["M" + i] = nt_pos_dic["C" + i] + nt_pos_dic["A" + i]
     return nt_pos_dic
 
 
@@ -272,7 +324,7 @@ def create_dic():
     """
     print("start...")
     file_dir = os.path.dirname(os.path.realpath(__file__))
-    ctrl = ["ACE", "CCE", "ALL"]
+    ctrl = ["CCE", "ACE", "ALL"]
     cnx = connection()
     os.mkdir(file_dir + "/control_dic")
     for exon_type in ctrl:
@@ -282,6 +334,8 @@ def create_dic():
         d6 = create_an_hexanucleotid_dic(tuple_list)
         print("dnt")
         ddnt = create_a_dnt_dic(tuple_list)
+        print("nt")
+        nt = create_a_nt_dic(tuple_list)
         print("codon")
         dc = create_a_codon_dic(tuple_list)
         print("codon pos")
@@ -320,6 +374,7 @@ def create_dic():
         with open(file_dir + "/control_dic/" + exon_type + "_dic.py", "w") as out_file:
             out_file.write("d6 = " + str(d6) + "\n")
             out_file.write("ddnt = " + str(ddnt) + "\n")
+            out_file.write("nt = " + str(nt) + "\n")
             out_file.write("dc = " + str(dc) + "\n")
             out_file.write("dcp = " + str(dcp) + "\n")
             out_file.write("da = " + str(da) + "\n")
