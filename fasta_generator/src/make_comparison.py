@@ -81,6 +81,48 @@ def create_an_hexanucleotid_dic(list_seq):
     return dic, count
 
 
+def nucleotide_calculator(dic, seq):
+    """
+    Add the count of di-nucleotide in the sequence 'seq'
+    to a dictionary 'dic' that already contains the di_nucleotide count of many previous
+    nucleotide sequences
+
+    :param dic: (dictionary of int) the number of amino acid for a
+    given set of sequence
+    :param seq: (string) the current exons (cds) sequence studied
+    :return: (dictionary) a dictionary containing the frequency of every possible di-nucleotides
+    """
+    if len(seq) > 1:
+
+        for j in range(len(seq) - 1):
+            dic[seq[j]] += 1
+    return dic
+
+
+def create_a_nt_dic(list_seq):
+    """
+    Count the total number of di-nucleotide in a list
+    if sequence list_seq
+
+    :param list_seq:(list of string) List of sequence in the fasta file
+    :return: a dictionary that contains the number of dnt
+    in all exons in tuple list
+    """
+    dic = {"A": 0, "T": 0, "G": 0, "C": 0}
+    for i in range(len(list_seq)):
+        dic = nucleotide_calculator(dic, "".join(list_seq[i]))
+    count = 0
+    for key in dic.keys():
+        count += dic[key]
+    dic["Y"] = dic["C"] + dic["T"]
+    dic["R"] = dic["A"] + dic["G"]
+    dic["W"] = dic["A"] + dic["T"]
+    dic["S"] = dic["C"] + dic["G"]
+    dic["K"] = dic["T"] + dic["G"]
+    dic["M"] = dic["C"] + dic["A"]
+    return dic, count
+
+
 def dinucleotide_calculator(dic, seq):
     """
     Add the count of di-nucleotide in the sequence 'seq'
@@ -297,6 +339,9 @@ def create_dic(fasta_file):
     print("generation of di-nucleotide dictionary")
     dic, all_dnt = create_a_dnt_dic(list_seq)
     res_dic.append(dic)
+    print("generation of nucleotides dictionary")
+    dic, all_nt = create_a_nt_dic(list_seq)
+    res_dic.append(dic)
     print("generation of codon dics")
     dic, all_codon = create_a_codon_dic(list_seq)
     res_dic.append(dic)
@@ -332,7 +377,7 @@ def create_dic(fasta_file):
         print(scale[i])
         res_dic.append(get_exons_value(list_seq, list_dic[i]))
     """
-    return res_dic, [all_hexa, all_dnt, all_codon, all_codon_pos, all_aa]
+    return res_dic, [all_hexa, all_dnt, all_nt, all_codon, all_codon_pos, all_aa]
 
 
 def get_dic_pvalue(dic_fasta, dic_control, ctrl_all, fasta_all):
@@ -387,8 +432,10 @@ def calculate_random_dic():
     codon_number = mod.dc["all"]
     dnt_number = mod.ddnt["all"]
     hexa_number = mod.d6["all"]
+    nt_number = mod.nt["all"]
     d6_r = {}
     ddnt_r = {}
+    nt_r = {}
     dc_r = {}
     da_r = {}
     dcp_r = {}
@@ -397,7 +444,15 @@ def calculate_random_dic():
             d6_r[key] = int(math.pow(0.25, 6) * hexa_number)
     for key in mod.ddnt.keys():
         if key != "all":
-            ddnt_r[key] = int(math.pow(0.25, 2) * dnt_number)
+            if key in ["AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT", "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT"]:
+                ddnt_r[key] = int(math.pow(0.25, 2) * dnt_number)
+            else:
+                ddnt_r[key] = int(math.pow(0.5, 2) * dnt_number)
+    for key in mod.nt.keys():
+        if key in ["A", "T", "G", "C"]:
+            nt_r[key] = int(0.25 * nt_number)
+        elif key in ["S", "W", "K", "M", "Y", "R"]:
+            nt_r[key] = int(0.5 * nt_number)
     for key in mod.dc.keys():
         if key != "all":
             dc_r[key] = int(math.pow(0.25, 3) * codon_number)
@@ -422,22 +477,23 @@ def calculate_random_dic():
         count += d6_r[key]
     d6_r['all'] = count
     count = 0
-    for key in ddnt_r.keys():
+    for key in ["AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT", "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT"]:
         count += ddnt_r[key]
     ddnt_r['all'] = count
+    nt_r['all'] = nt_r["A"] + nt_r["T"] + nt_r["G"] + nt_r["C"]
     count = 0
     for key in dc_r.keys():
         count += dc_r[key]
     dc_r['all'] = count
     count = 0
-    for key in dcp_r.keys():
+    for key in ["A1", "C1", "G1", "T1", "A2", "C2", "G2", "T2", "A3", "C3", "G3", "T3"]:
         count += dcp_r[key]
     dcp_r['all'] = count/3
     count = 0
     for key in da_r.keys():
         count += da_r[key]
     da_r['all'] = count
-    return [d6_r, ddnt_r, dc_r, dcp_r, da_r, sh, hy, ch, po, mi]
+    return [d6_r, ddnt_r, nt_r, dc_r, dcp_r, da_r, sh, hy, ch, po, mi]
 
 
 def calculate_all_p_value_dic(fasta_dics, exon_type, all_list):
@@ -462,7 +518,7 @@ def calculate_all_p_value_dic(fasta_dics, exon_type, all_list):
         ctrl_dics = calculate_random_dic()
     else:
         mod = __import__(exon_type + "_dic")
-        ctrl_dics = [mod.d6, mod.ddnt, mod.dc, mod.dcp, mod.da, mod.sh, mod.hy, mod.ch, mod.po, mod.mi]
+        ctrl_dics = [mod.d6, mod.ddnt, mod.nt, mod.dc, mod.dcp, mod.da, mod.sh, mod.hy, mod.ch, mod.po, mod.mi]
     """
     ctrl_dics = [mod.d6, mod.dc, mod.da, mod.sh, mod.hy, mod.ch, mod.po, mod.mi,
                 mod.hydrophobicity_kyte, mod.hydrophobicity_eisenberg,
@@ -475,11 +531,11 @@ def calculate_all_p_value_dic(fasta_dics, exon_type, all_list):
                 mod.coil_prediction_nagano, mod.coil_prediction_deleage]
     """
     for i in range(len(ctrl_dics)):
-        print(str(i) + "dics out of " + str(8))
-        if i < 5:
+        print(str(i) + "dics out of " + str(11))
+        if i < 6:
             p_val_dics.append(get_dic_pvalue(fasta_dics[i], ctrl_dics[i], ctrl_dics[i]["all"], all_list[i]))
-        elif i < 10:
-            p_val_dics.append(get_dic_pvalue(fasta_dics[i], ctrl_dics[i], ctrl_dics[4]["all"], all_list[4]))
+        elif i < 11:
+            p_val_dics.append(get_dic_pvalue(fasta_dics[i], ctrl_dics[i], ctrl_dics[5]["all"], all_list[5]))
         """
         elif i >= 8:
             p_val_dics.append(get_propensity_pvalue(fasta_dics[i], ctrl_dics[i]))
@@ -671,9 +727,9 @@ def sheet_filler(content, a_sheet, header_format, normal_format):
         a_sheet.set_column(i, i, cell_size[i]+2)
 
 
-def creating_report(hexa_content, dnt_content, codon_content, codon_pos_content, aa_content, group_content, output):
+def creating_report(hexa_content, dnt_content, nt_content, codon_content, codon_pos_content, aa_content, group_content, output):
     """
-    Create the enrichement report file
+    Create the enrichment report file
 
     :param hexa_content: list of list of string variable that represent the content of then sheet hexanucleotide
     in the enrichment report file.
@@ -693,16 +749,18 @@ def creating_report(hexa_content, dnt_content, codon_content, codon_pos_content,
     header_format = workbook.add_format({'bg_color': '#00DCFF', 'align': 'center', 'valign': 'vcenter', 'border': True})
     normal_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': True})
 
-    hexa_sheet = workbook.add_worksheet("haxnucleotide")
+    nt_sheet = workbook.add_worksheet("nt")
     dnt_sheet = workbook.add_worksheet("dnt")
+    hexa_sheet = workbook.add_worksheet("hexanucleotide")
     codon_sheet = workbook.add_worksheet("codon")
     codon_pos_sheet = workbook.add_worksheet("codon position")
     aa_sheet = workbook.add_worksheet("amino_acid")
     grp_sheet = workbook.add_worksheet("our_group")
     # prop_sheet = workbook.add_worksheet("propensity")
 
-    sheet_filler(hexa_content, hexa_sheet, header_format, normal_format)
+    sheet_filler(nt_content, nt_sheet, header_format, normal_format)
     sheet_filler(dnt_content, dnt_sheet, header_format, normal_format)
+    sheet_filler(hexa_content, hexa_sheet, header_format, normal_format)
     sheet_filler(codon_content, codon_sheet, header_format, normal_format)
     sheet_filler(codon_pos_content, codon_pos_sheet, header_format, normal_format)
     sheet_filler(aa_content, aa_sheet, header_format, normal_format)
@@ -719,7 +777,7 @@ def create_fusions_dic(list_dics):
     """
     grp_dics = {}
     prop_dics = {}
-    for i in range(5, 10):
+    for i in range(6, 11):
         for key in list_dics[i].keys():
             grp_dics[key] = list_dics[i][key]
     """
@@ -745,28 +803,31 @@ def main(fasta_file, output, motif, exon_type):
     hexa_content = get_hexanucleotide_content(ctrl_dics[0], fasta_dics[0], p_val_dics[0],
                                               exon_type, motif, ctrl_dics[0]["all"], all_list[0])
     print("Creating dnt content")
-    dnt_content = get_hexanucleotide_content(ctrl_dics[1], fasta_dics[1], p_val_dics[1],
+    dnt_content = get_content(ctrl_dics[1], fasta_dics[1], p_val_dics[1],
                                              exon_type, "dnt", ctrl_dics[1]["all"], all_list[1])
+    print("Creating nt content")
+    nt_content = get_content(ctrl_dics[2], fasta_dics[2], p_val_dics[2],
+                                             exon_type, "nt", ctrl_dics[2]["all"], all_list[2])
     print("Creating codon content")
-    codon_content = get_codon_content(ctrl_dics[2], fasta_dics[2], p_val_dics[2],
-                                      exon_type, ctrl_dics[2]["all"], all_list[2])
+    codon_content = get_codon_content(ctrl_dics[3], fasta_dics[3], p_val_dics[3],
+                                      exon_type, ctrl_dics[3]["all"], all_list[3])
     print("Creating codon position content")
-    codon_pos_content = get_content(ctrl_dics[3], fasta_dics[3], p_val_dics[3],
-                                    exon_type, "codon_pos", ctrl_dics[3]["all"],
-                                    all_list[3])
+    codon_pos_content = get_content(ctrl_dics[4], fasta_dics[4], p_val_dics[4],
+                                    exon_type, "codon_pos", ctrl_dics[4]["all"],
+                                    all_list[4])
     print("Creating aa content")
-    aa_content = get_content(ctrl_dics[4], fasta_dics[4], p_val_dics[4],
-                             exon_type, "aa", ctrl_dics[4]["all"], all_list[4])
+    aa_content = get_content(ctrl_dics[5], fasta_dics[5], p_val_dics[5],
+                             exon_type, "aa", ctrl_dics[5]["all"], all_list[5])
     print("Creating grp and prop content")
     grp_fasta_dics, prop_fasta_dics = create_fusions_dic(fasta_dics)
     grp_ctrl_dics, prop_ctrl_dics = create_fusions_dic(ctrl_dics)
     grp_pval_dics, prop_pval_dics = create_fusions_dic(p_val_dics)
     grp_content = get_content(grp_ctrl_dics, grp_fasta_dics, grp_pval_dics,
-                              exon_type, "feature_groups", ctrl_dics[4]["all"], all_list[4])
+                              exon_type, "feature_groups", ctrl_dics[5]["all"], all_list[5])
     """
     prop_content = get_content(prop_ctrl_dics, prop_fasta_dics, prop_pval_dics, exon_type, "scaled_groups")
     """
-    creating_report(hexa_content, dnt_content, codon_content, codon_pos_content, aa_content, grp_content, output)
+    creating_report(hexa_content, dnt_content, nt_content, codon_content, codon_pos_content, aa_content, grp_content, output)
 
 
 def launcher():
