@@ -226,7 +226,7 @@ def exon_sequence_generator(size_int, list_seq, ctrl, feature_interest, prop_fea
             my_seq.append(seq[i:i+3])
     # enrichment of a nucleotide
 
-    print(my_seq)
+    # print(my_seq)
     cur_prop = feature_frequency_calculator(my_seq, feature_interest)
 
     if cur_prop > prop_feature:
@@ -235,7 +235,7 @@ def exon_sequence_generator(size_int, list_seq, ctrl, feature_interest, prop_fea
         reg = "+"
     temp_reg = reg
     while temp_reg == reg:
-        print(str(cur_prop) + " - " + str(feature_interest) + " - " + str(reg) + " - " + str(temp_reg))
+        # print(str(cur_prop) + " - " + str(feature_interest) + " - " + str(reg) + " - " + str(temp_reg))
         if reg == "+":
             val = random.randint(0, len(my_seq) - 1)
             if codon2aminoAcid[my_seq[val]] not in feature_dic[feature_interest]:
