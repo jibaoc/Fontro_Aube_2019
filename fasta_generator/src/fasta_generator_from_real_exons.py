@@ -316,11 +316,18 @@ def fasta_generator(size_int, number_seq, output, out_name, feature, feature_pro
     """
     list_seq = read_CCE_sequence(ctrl)
     with open(output + out_name + ".fasta", "w") as outfile:
+        list_ft_freq = []
         for i in range(1, number_seq+1):
             fseq, ap, cp, gp, tp, cur_prop, length = exon_sequence_generator(size_int,
                                                                              list_seq, ctrl, feature, feature_prop)
             header = header_generator(length, ap, cp, gp, tp, cur_prop, feature, i)
             outfile.write(header + "\n" + fseq + "\n")
+            list_ft_freq.append(cur_prop)
+    mean = 0
+    for val in list_ft_freq:
+        mean += val
+    mean = float(mean)/len(list_ft_freq)
+    print("frequence of " + feature + " amino acids in the file : " + str(mean))
 
 
 def launcher():
