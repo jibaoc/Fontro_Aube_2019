@@ -52,7 +52,7 @@ feature_dic = {
     "EPRS": ["P", "E"],
     "PEVK": ["P", "E", "V", "K"],
     "Serine": ["S"],
-    "Theronine": ["T"]
+    "Threonine": ["T"]
 }
 
 

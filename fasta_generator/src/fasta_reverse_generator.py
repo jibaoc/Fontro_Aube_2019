@@ -309,7 +309,7 @@ def launcher():
     EPRS: P, E
     PEVK: P, E, V, K
     Serine : S
-    Theronine: T
+    Threonine: T
     """,
                                      usage='%(prog)s --feature a_feature_name --prob a_prob_name ')
     # Arguments for the parser
