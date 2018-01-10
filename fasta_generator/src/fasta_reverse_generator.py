@@ -59,7 +59,9 @@ feature_dic = {
     "Order_promoting": ["W", "Y", "F", "I", "L", "V", "C", "N"],
     "Thiolation": ["K", "Q", "E"],
     "EPRS": ["P", "E"],
-    "PEVK": ["P", "E", "V", "K"]
+    "PEVK": ["P", "E", "V", "K"],
+    "Serine": ["S"],
+    "Theronine": ["T"]
 }
 
 
@@ -306,6 +308,8 @@ def launcher():
     Thiolation: K, Q, E
     EPRS: P, E
     PEVK: P, E, V, K
+    Serine : S
+    Theronine: T
     """,
                                      usage='%(prog)s --feature a_feature_name --prob a_prob_name ')
     # Arguments for the parser
