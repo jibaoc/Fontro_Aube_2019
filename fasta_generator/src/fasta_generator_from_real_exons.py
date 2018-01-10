@@ -50,11 +50,18 @@ feature_dic = {
     "Order_promoting": ["W", "Y", "F", "I", "L", "V", "C", "N"],
     "Thiolation": ["K", "Q", "E"],
     "EPRS": ["P", "E"],
-    "PEVK": ["P", "E", "V", "K"]
+    "PEVK": ["P", "E", "V", "K"],
+    "Serine": ["S"],
+    "Theronine": ["T"]
 }
 
 
 def read_CCE_sequence(ctrl):
+    """
+    Read a file named ctrl + "_reading_frame.csv" in the folder of this script
+    :param ctrl: (string) it can be CCE or ACE
+    :return: a list of control sequence
+    """
     file_dir = os.path.dirname(os.path.realpath(__file__))
     list_seq = []
     with open(file_dir + "/" + ctrl + "_reading_frame.csv", "r") as seq_file:
@@ -66,6 +73,11 @@ def read_CCE_sequence(ctrl):
 
 
 def translator(seq):
+    """
+
+    :param seq: (list of string) list of codon
+    :return: list of codon translated : i.e. amino acid list
+    """
     aa = ""
     for codon in seq:
         aa += codon2aminoAcid[codon]
@@ -73,6 +85,11 @@ def translator(seq):
 
 
 def feature_frequency_calculator(seq, feature):
+    """
+    :param seq: (list of string) list of codons
+    :param feature: (string) the feature of interest
+    :return: the frequency of the feature in sequence 'seq'
+    """
     aa_seq = translator(seq)
     count = 0
     for aa in feature_dic[feature]:
@@ -129,7 +146,7 @@ def generate_dic(ctrl_dic, unit_list):
 
     :param ctrl_dic: (dictionary of int) for each unit (aa or codon) give it's count in the control set of exons
     :param unit_list: (list of string) list of aa or codon
-    :return:
+    :return: a dictionary that only contains the unit in unit list not all the unit in ctrl_dic
     """
     aa_dic = {}
     count = 0
@@ -158,6 +175,13 @@ def get_cur_val(ctr_dic, value):
 
 
 def get_indices_of_feature(codon_list, feature):
+    """
+
+    :param codon_list: (list of string) list of codons
+    :param feature: (string) the feature of interest
+    :return: (list of int) the list of indices in codon_list where there are a codon encoding for
+    the feature 'feature'
+    """
     aa_seq = translator(codon_list)
     indices = []
     for i in range(len(aa_seq)):
@@ -168,22 +192,26 @@ def get_indices_of_feature(codon_list, feature):
 
 def exon_sequence_generator(size_int, list_seq, ctrl, feature_interest, prop_feature):
     """
-    Generation of fasta sequences having the same codon frequency as
-    the one in CCE/ACE/ALL exons in fasterDB according to the
+    Generation of fasta sequences having the a feature frequency near of  prop_feature.
+    The sequence will be first generated from existing CCE exons sequences
     ctrl variable.
     Those sequence can be enriched in one di-nucleotide if
     dnt_interest is not none.
 
-    :param length: (int) the length of the sequence to generate
-    :param ctrl: (string) CCE or ACE or ALL.
-    :param dnt_interest: (tuple of a string and a float) the first value is the dnt,
-    the other is its proportion.
-    :return: my_seq, dnt_prop_txt, dnt_prop
-     - my_seq : (string) the random sequence generated
-     - dnt_prop_txt : (string) the proportion of each
-     di-nucleotides in my_seq
-     - dnt_prop (dictionary of float) proportion (values)
-     of each di-nucleotide (keys)
+    :param size_int: list of 2 int) the min size possible and the max size possible of the sequences we want to create
+    :param list_seq: (list of string)  a list of control sequence
+    :param ctrl: (string) CCE or ACE.
+    :param feature_interest: (string) the name of a feature of interest
+    :param prop_feature: (float) the wanted proportion of exons in the generated sequence
+    :return: fseq, ap, cp, gp, tp, cur_prop, len(rseq)
+        -fseq: (string) the nucleotide sequence having a proportion of prop_feature of the feature 'feature_interest'
+        - ap : (float) Adenine proportion
+        - cp : (float) Cytosine proportion
+        - gp : (float) Guanine proportion
+        - tp : (float) Thymine proportion
+        - cur_prop : (float) feature_interest proportion
+        - len(rseq) length of the generated sequence (without the \r)
+
     """
     file_dir = os.path.dirname(os.path.realpath(__file__))
     sys.path.insert(0, file_dir + "/control_dic/")
@@ -251,7 +279,6 @@ def exon_sequence_generator(size_int, list_seq, ctrl, feature_interest, prop_fea
     tp = round(float(rseq.count("T")) / len(rseq), 2)
     cur_prop = feature_frequency_calculator(my_seq, feature_interest)
 
-
     return fseq, ap, cp, gp, tp, cur_prop, len(rseq)
 
 
@@ -262,10 +289,14 @@ def header_generator(length, a_prop, c_prop, g_prop, t_prop, ft_prop, ft_name, n
     :param t_prop: (float) proportion of t in the sequence we will create
     :param c_prop: (float) proportion of c in the sequence we will create
     :param g_prop: (float) proportion of g in the sequence we will create
+    :param ft_prop: (float) the proportion of the feature ft_name in the sequence we will create
+    :param ft_name: (string) the name of the feature of interest whose the frequency must be control
+    in the generated sequence
     :param num_seq: (int) the number of sequence we will create
     :return: (string) the header of a sequence
     """
-    header = ">seq_" + str(num_seq) + " | " + str(ft_name) + " : " + str(ft_prop) + " - A : " + str(a_prop) + " - C : " + str(c_prop) + " - G : " + str(g_prop)
+    header = ">seq_" + str(num_seq) + " | " + str(ft_name) + " : " + str(ft_prop) + " - A : " + \
+             str(a_prop) + " - C : " + str(c_prop) + " - G : " + str(g_prop)
     header += " - T : " + str(t_prop) + " | length : " + str(length)
     return header
 
@@ -275,19 +306,19 @@ def fasta_generator(size_int, number_seq, output, out_name, feature, feature_pro
     Write a fasta file of number_seq sequences having a size in  'size_int' and proportion corresponding to a_prop,
     t_prop, c_prop, g_prop
     :param size_int: (list of 2 int) the min size possible and the max size possible of the sequences we want to create
-    :param a_prop: (float) proportion of A in the sequence we will create
-    :param t_prop: (float) proportion of t in the sequence we will create
-    :param c_prop: (float) proportion of c in the sequence we will create
-    :param g_prop: (float) proportion of g in the sequence we will create
     :param number_seq: (int) the number of sequence we will create
     :param output: (string) path where the fasta file will be created
     :param out_name: (string) the name of the fasta file to create
+    :param feature: (string) the name of a feature of interest
+    :param ctrl: (string) CCE or ACE.
+    :param feature_prop: (float) the wanted proportion of exons in the generated sequence
     False if the proportion have to be equal or very close  to what the user specified
     """
     list_seq = read_CCE_sequence(ctrl)
     with open(output + out_name + ".fasta", "w") as outfile:
         for i in range(1, number_seq+1):
-            fseq, ap, cp, gp, tp, cur_prop, length = exon_sequence_generator(size_int, list_seq, ctrl, feature, feature_prop)
+            fseq, ap, cp, gp, tp, cur_prop, length = exon_sequence_generator(size_int,
+                                                                             list_seq, ctrl, feature, feature_prop)
             header = header_generator(length, ap, cp, gp, tp, cur_prop, feature, i)
             outfile.write(header + "\n" + fseq + "\n")
 
@@ -351,6 +382,8 @@ def launcher():
     Thiolation: K, Q, E
     EPRS: P, E
     PEVK: P, E, V, K
+    Serine : S
+    Theronine: T
     """,
                                      usage='%(prog)s --feature a_feature_name --prob a_prob_name ')
     # Arguments for the parser
@@ -425,8 +458,6 @@ def launcher():
         args.output += "/"
 
     fasta_generator(size_int, args.nbr_seq, args.output, args.filename, args.feature, args.prop, args.ctrl)
-
-    #fasta_generator(size_int, args.prop, args.feature, args.nbr_seq, args.output, args.filename, args.ctrl)
 
 if __name__ == "__main__":
     launcher()
