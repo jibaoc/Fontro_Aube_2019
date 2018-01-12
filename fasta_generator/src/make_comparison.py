@@ -352,11 +352,11 @@ def create_dic(fasta_file):
     dic, all_aa = create_an_aa_dic(list_seq)
     res_dic.append(dic)
     print("generating group dics")
-    res_dic.append(create_a_custom_dic(res_dic[4], schain2aa))
-    res_dic.append(create_a_custom_dic(res_dic[4], hydro_info2aa))
-    res_dic.append(create_a_custom_dic(res_dic[4], charge_info2aa))
-    res_dic.append(create_a_custom_dic(res_dic[4], polarity_info2aa))
-    res_dic.append(create_a_custom_dic(res_dic[4], misc2aa))
+    res_dic.append(create_a_custom_dic(res_dic[5], schain2aa))
+    res_dic.append(create_a_custom_dic(res_dic[5], hydro_info2aa))
+    res_dic.append(create_a_custom_dic(res_dic[5], charge_info2aa))
+    res_dic.append(create_a_custom_dic(res_dic[5], polarity_info2aa))
+    res_dic.append(create_a_custom_dic(res_dic[5], misc2aa))
     """
     print("generating propensity dics...")
     list_dic = [aa2kyte_hydrophobicity, aa2eisenberg_hydrophobicity,
@@ -819,6 +819,7 @@ def main(fasta_file, output, motif, exon_type):
     aa_content = get_content(ctrl_dics[5], fasta_dics[5], p_val_dics[5],
                              exon_type, "aa", ctrl_dics[5]["all"], all_list[5])
     print("Creating grp and prop content")
+    print(fasta_dics[7])
     grp_fasta_dics, prop_fasta_dics = create_fusions_dic(fasta_dics)
     grp_ctrl_dics, prop_ctrl_dics = create_fusions_dic(ctrl_dics)
     grp_pval_dics, prop_pval_dics = create_fusions_dic(p_val_dics)
