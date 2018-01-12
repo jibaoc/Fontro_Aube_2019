@@ -423,7 +423,6 @@ def exon_sequence_generator(length, ctrl, dnt_interest):
         else:
             reg = "+"
         temp_reg = reg
-        print(str(dnt_prop[dnt_interest[0]]) + " - " + str(dnt_interest[1]) + " - " + str(reg))
         while temp_reg == reg:
             if reg == "+":
                 val = random.randint(0, len(seq)-2)
@@ -436,17 +435,11 @@ def exon_sequence_generator(length, ctrl, dnt_interest):
                 else:
                     seq[val+1] = iupac[dnt_interest[0][1]][random.randint(0, len(iupac[dnt_interest[0][1]])-1)]
             else:
-                print("already enriched")
                 break
             dnt_prop = dinucleotide_calculator_bis("".join(seq))
-            print("".join(seq))
-            print(str(dnt_prop[dnt_interest[0]]) + " - " + str(dnt_interest[1]) + " - " +
-                  str(reg) + " -" + str(temp_reg))
             if dnt_prop[dnt_interest[0]] >= dnt_interest[1]:
-                print("ok")
                 temp_reg = "-"
             else:
-                print("ko")
                 temp_reg = "+"
         seq = "".join(seq)
     dnt_prop_txt = ""
