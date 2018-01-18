@@ -402,6 +402,8 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
                                            control_nucleic_acid_frequencies, nucleic_acid_frequency, nucleic_acid_frequency_5p, nucleic_acid_frequency_3p, dic_p_val_nt,
                                            control_ntp_frequencies, ntp_frequency, ntp_frequency_5p, ntp_frequency_3p, dic_p_val_ntp,
                                            control_dnt_frequencies, dnt_frequency, dnt_frequency_5p, dnt_frequency_3p, dic_p_val_dnt,
+                                           control_hexa_frequencies, hexa_frequency, hexa_frequency_5p, hexa_frequency_3p,
+                                           dic_p_val_hexa,
                                            output_folder, set_number):
     """
     :param control_frequencies_codon:  (dictionary of floats) a dictionary containing the codon frequencies of the
@@ -535,7 +537,12 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
                                                                       dic_p_val_dnt,
                                                                       set_number, "dnt_info", dnt_list)
 
-
+    hexa_content, dic_padjust_hexa = get_content_group_enrichment(control_hexa_frequencies,
+                                                                              hexa_frequency,
+                                                                              hexa_frequency_5p,
+                                                                              hexa_frequency_3p,
+                                                                              dic_p_val_hexa,
+                                                                              set_number, "structural_group")
     # creating the sheets...
     codon_sheet = workbook.add_worksheet("codon")
     aa_sheet = workbook.add_worksheet("amino_acid")
@@ -549,6 +556,7 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
     nt_sheet = workbook.add_worksheet("nt_info")
     ntp_sheet = workbook.add_worksheet("nt_pos_info")
     dnt_sheet = workbook.add_worksheet("dnt_info")
+    hexa_sheet = workbook.add_worksheet("hexa_info")
 
     # filling the sheets...
     sheet_filler(codon_content, codon_sheet, header_format, normal_format)
@@ -563,6 +571,7 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
     sheet_filler(nt_content, nt_sheet, header_format, normal_format)
     sheet_filler(ntp_content, ntp_sheet, header_format, normal_format)
     sheet_filler(dnt_content, dnt_sheet, header_format, normal_format)
+    sheet_filler(hexa_content, hexa_sheet, header_format, normal_format)
 
     workbook.close()
     return dic_padjust_codon, dic_padjust_aa
