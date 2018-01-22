@@ -196,7 +196,8 @@ proportion=(0.075 0.087 0.083 0.078 0.123)
 let end=${#dnt[@]}-1
 for i in `seq 0 $end`; do
   cmd="python src/fasta_generator.py --output result/version_0.3/fasta_CCE_sequence_dinucleotide_freq/ --dnt ${dnt[$i]} --freq ${proportion[$i]} --filename RD_${dnt[$i]}_${proportion_r[$i]} --ctrl CCE"
-  eval $cmd
+  echo $cmd
+done
   # proportion in the file :
   # AA : 0.0712029336115 | AC : 0.0544392819394 | AG : 0.0739719412183 | AT : 0.0540630124559 | CA : 0.0725431899183 | CC : 0.0693247624796 | CG : 0.054418383133 | CT : 0.065767894752 | GA : 0.0717734135182 | GC : 0.0817505010694 | GG : 0.0667182154635 | GT : 0.0468398014839 | TA : 0.0373564303081 | TC : 0.0572358838506 | TT : 0.0506975974649 | TG : 0.0718967573334 |
   # proportion in the file :
@@ -224,12 +225,181 @@ dnt=(GC CC CA CT AA)
 proportion=(0.08 0.095 0.09 0.083 0.13)
 
 list_file=($(ls result/version_0.3/fasta_random_sequence_dinucleotide_freq))
-motif=([GC][GC][ATGC]G  CC [[CA][AC] CT][TC] AGAA)
+motif=([GC][GC][ATGC]G  CC [CA][AC] [CT][TC] AGAA)
 echo ${list_file[1]:0:-6}
 let c=0
 for i in ${list_file[@]}; do
   #eval "mkdir result/version_0.3/comparison_random_sequence_dinucleotide_freq/${i:0:(-6)}"
-  echo "python src/make_comparison.py --output result/version_0.3/comparison_random_sequence_dinucleotide_freq/${i:0:-6}/ --fasta result/version_0.3/fasta_random_sequence_dinucleotide_freq/$i --ctrl RD --motif ${motif[$c]}"
+  eval "python src/make_comparison.py --output result/version_0.3/comparison_random_sequence_dinucleotide_freq/${i:0:-6}/ --fasta result/version_0.3/fasta_random_sequence_dinucleotide_freq/$i --ctrl RD --motif ${motif[$c]}"
+  let c=$c+1
+done
+```
+
+
+## For CCE fasta
+
+```sh
+
+mkdir result/version_0.3/comparison_CCE_sequence_dinucleotide_freq
+
+list_file=($(ls result/version_0.3/fasta_CCE_sequence_dinucleotide_freq))
+motif=([GC][GC][ATGC]G  CC [CA][AC] [CT][TC] AGAA)
+echo ${list_file[1]:0:-6}
+let c=0
+for i in ${list_file[@]}; do
+  #eval "mkdir result/version_0.3/comparison_CCE_sequence_dinucleotide_freq/${i:0:(-6)}"
+  eval "python src/make_comparison.py --output result/version_0.3/comparison_CCE_sequence_dinucleotide_freq/${i:0:-6}/ --fasta result/version_0.3/fasta_CCE_sequence_dinucleotide_freq/$i --ctrl CCE --motif ${motif[$c]}"
+  let c=$c+1
+done
+```
+
+## control
+
+
+```sh
+mkdir result/version_0.3/control_feature
+
+eval "python src/fasta_reverse_generator.py --output result/version_0.3/control_feature --feature Serine --prob 8 --filename CCE_Serine_08"
+eval "python src/fasta_generator_from_real_exons.py --output result/version_0.3/control_feature --feature Serine --prop 0.08"
+
+#mkdir result/version_0.3/control_feature/comparison_rd_exon
+#mkdir result/version_0.3/control_feature/comparison_real_exon
+
+
+python src/make_comparison.py --output result/version_0.3/control_feature/comparison_rd_exon/ --fasta result/version_0.3/control_feature/CCE_Serine_08.fasta --ctrl CCE --motif X
+
+python src/make_comparison.py --output result/version_0.3/control_feature/comparison_real_exon/ --fasta result/version_0.3/control_feature/CCE_Serine_0.08.fasta --ctrl CCE --motif X
+
+```
+
+# Hexanucleotides
+
+
+Creation of the weblogos related to the hexanucleotide enriched in the exons regulated by splicing factors of interest
+
+```sh
+mkdir result/version_0.3/weblogo_hexanucleotides
+mkdir result/version_0.3/weblogo_hexanucleotides/weblogo_exon_regulated_by_sf
+
+file=(down/01_1_SRSF1_ENCSR066VOO_K562_result_CCE_down_enrichment_report.xlsx down/01_2_SRSF1_ENCSR094KBY_HepG2_result_CCE_down_enrichment_report.xlsx down/01_3_SRSF1_GSE52834_GM19238_result_CCE_down_enrichment_report.xlsx down/01_4_SRSF1_GSE26463_HeLA_result_CCE_down_enrichment_report.xlsx down/02_1_SRSF2_GSE65349_K562_result_CCE_down_enrichment_report.xlsx down/02_2_SRSF2_GSE78705_Huh7_result_CCE_down_enrichment_report.xlsx down/03_1_SRSF3_GSE52834_GM19238_result_CCE_down_enrichment_report.xlsx down/03_2_SRSF3_ENCSR376FGR_HepG2_result_CCE_down_enrichment_report.xlsx down/05_1_SRSF7_ENCSR464ADT_K562_result_CCE_down_enrichment_report.xlsx down/05_2_SRSF7_ENCSR017PRS_HepG2_result_CCE_down_enrichment_report.xlsx down/08_1_TRA2A-B_GSE59335_MDA-MB-231_result_CCE_down_enrichment_report.xlsx up/17_1_hnRNPH1_GSE34996_293T_result_CCE_up_enrichment_report.xlsx  up/18_1_hnRNPK_GSE52834_GM19238_result_CCE_up_enrichment_report.xlsx up/18_2_hnRNPK_ENCSR529JNJ_K562_result_CCE_up_enrichment_report.xlsx up/18_4_hnRNPK_ENCSR853ZJS_HepG2_result_CCE_up_enrichment_report.xlsx up/19_1_hnRNPL_ENCSR563YIS_K562_result_CCE_up_enrichment_report.xlsx up/19_2_hnRNPL_ENCSR155BMF_HepG2_result_CCE_up_enrichment_report.xlsx up/19_3_hnRNPL_GSE72842_LNCaP_result_CCE_up_enrichment_report.xlsx up/19_4_hnRNPL_GSE52834_GM19238_result_CCE_up_enrichment_report.xlsx up/23_1_PTBP1_ENCSR064DXG_HepG2_result_CCE_up_enrichment_report.xlsx up/23_2_PTBP1_GSE59884_293T_result_CCE_up_enrichment_report.xlsx up/23_3_PTBP1_GSE42701_HeLA_result_CCE_up_enrichment_report.xlsx up/23_4_PTBP1_ENCSR239BCO_K562_result_CCE_up_enrichment_report.xlsx)
+
+
+name=(SRSF1_down_K562 SRSF1_down_HepG2 SRSF1_down_GM19238 SRSF1_down_Hela SRSF2_down_K562 SRSF2_down_Huh7 SRSF3_down_GM19238 SRSF3_down_HepG2 SRSF7_down_K562 SRSF7_down_HepG2 TRA2_down_MDA hnRNPH1_up_293T hnRNPK_up_GM19238 hnRNPK_up_K562 hnRNPK_up_HepG2 hnRNPL_up_K562 hnRNPL_up_HepG2 hnRNPL_up_LNCap hnRNPL_up_GM19238 PTBP1_up_HepG2 PTBP1_up_293T PTBP1_up_Hela PTBP1_up_K562)
+
+let c=0
+for i in ${file[@]}; do
+  echo "python src/weblogo_maker.py --excel_file /media/nicolas/DD_2/Projects/splicing_factor_analysis_group_enrichement/new_analysis_January_12/exons_regulated_by_sf/CCE/$i --fasta False --output result/version_0.3/weblogo_hexanucleotides/weblogo_exon_regulated_by_sf/ --name ${name[$c]}"
+  let c=$c+1
+done
+```
+Creation of the weblogos related to the hexanucleotide enriched in the random sequence with specific enrichement
+here all the enriched hexanucleotide are taken if their pvalue **not corrected is below 0.05**
+
+```sh
+mkdir result/version_0.3/weblogo_hexanucleotides/weblogo_feature_random
+mkdir result/version_0.3/weblogo_hexanucleotides/weblogo_feature_CCEmutated
+mkdir result/version_0.3/weblogo_hexanucleotides/weblogo_random_dnt
+mkdir result/version_0.3/weblogo_hexanucleotides/weblogo_CCE_dnt
+
+
+file_CCE_mutated=($(find result/version_0.3/comparison_CCEmutated_sequence_feature_freq/ -name "enrichment_report*" -type f | sort))
+name_CCE_mutated=($(ls result/version_0.3/comparison_CCEmutated_sequence_feature_freq/ | sort))
+
+let c=0
+for i in ${file_CCE_mutated[@]}; do
+  python src/weblogo_maker.py --excel_file $i --fasta True --output result/version_0.3/weblogo_hexanucleotides/weblogo_feature_CCEmutated --name ${name_CCE_mutated[$c]}.png --p_cor False
+  let c=$c+1
+done
+
+
+file_CCE=($(find result/version_0.3/comparison_random_sequence_feature_freq/ -name "enrichment_report*" -type f | sort))
+name_CCE=($(ls result/version_0.3/comparison_random_sequence_feature_freq/ | sort))
+
+let c=0
+for i in ${file_CCE[@]}; do
+  python src/weblogo_maker.py --excel_file $i --fasta True --output result/version_0.3/weblogo_hexanucleotides/weblogo_feature_random --name ${name_CCE[$c]}.png --p_cor False
+  let c=$c+1
+done
+
+file_rd_dnt=($(find result/version_0.3/comparison_random_sequence_dinucleotide_freq/ -name "enrichment_report*" -type f | sort))
+name_rd_dnt=($(ls result/version_0.3/comparison_random_sequence_dinucleotide_freq/ | sort))
+
+let c=0
+for i in ${file_rd_dnt[@]}; do
+  python src/weblogo_maker.py --excel_file $i --fasta True --output result/version_0.3/weblogo_hexanucleotides/weblogo_random_dnt --name ${name_rd_dnt[$c]}.png --p_cor False
+  let c=$c+1
+done
+
+file_CCE_dnt=($(find result/version_0.3/comparison_CCE_sequence_dinucleotide_freq/ -name "enrichment_report*" -type f | sort))
+name_CCE_dnt=($(ls result/version_0.3/comparison_CCE_sequence_dinucleotide_freq/ | sort))
+
+let c=0
+for i in ${file_CCE_dnt[@]}; do
+  python src/weblogo_maker.py --excel_file $i --fasta True --output result/version_0.3/weblogo_hexanucleotides/weblogo_CCE_dnt --name ${name_CCE_dnt[$c]}.png --p_cor False
+  let c=$c+1
+done
+```
+
+Creating weblogo for fabien enriched di-nucleotide. They are in the folder data.
+
+```sh
+mkdir result/version_0.3/weblogo_hexanucleotides/weblogo_Fabien
+
+file_fab=($(find data/Fabien_hexant_enrichement/ -name "*.xls*" -type f | sort))
+name=(hnRNPH1 hnRNPK hnRNPL PTBP1 SRSF1 SRSF2 SRSF3 SRSF7 TRA2)
+
+let c=0
+for i in ${file_fab[@]}; do
+  python src/weblogo_maker.py --excel_file $i --fasta False --output result/version_0.3/weblogo_hexanucleotides/weblogo_Fabien/ --name ${name[$c]}.png
+  let c=$c+1
+done
+```
+
+Creation of the weblogos related to the hexanucleotide enriched in the random sequence with specific enrichement
+here all the enriched hexanucleotide are taken if their pvalue ** corrected is below 0.05**
+
+```sh
+mkdir result/version_0.3/weblogo_hexanucleotides/p_cor/
+mkdir result/version_0.3/weblogo_hexanucleotides/p_cor/weblogo_feature_random
+mkdir result/version_0.3/weblogo_hexanucleotides/p_cor/weblogo_feature_CCEmutated
+mkdir result/version_0.3/weblogo_hexanucleotides/p_cor/weblogo_random_dnt
+mkdir result/version_0.3/weblogo_hexanucleotides/p_cor/weblogo_CCE_dnt
+
+
+file_CCE_mutated=($(find result/version_0.3/comparison_CCEmutated_sequence_feature_freq/ -name "enrichment_report*" -type f | sort))
+name_CCE_mutated=($(ls result/version_0.3/comparison_CCEmutated_sequence_feature_freq/ | sort))
+
+let c=0
+for i in ${file_CCE_mutated[@]}; do
+  python src/weblogo_maker.py --excel_file $i --fasta True --output result/version_0.3/weblogo_hexanucleotides/p_cor/weblogo_feature_CCEmutated --name ${name_CCE_mutated[$c]}.png --p_cor True
+  let c=$c+1
+done
+
+
+file_CCE=($(find result/version_0.3/comparison_random_sequence_feature_freq/ -name "enrichment_report*" -type f | sort))
+name_CCE=($(ls result/version_0.3/comparison_random_sequence_feature_freq/ | sort))
+
+let c=0
+for i in ${file_CCE[@]}; do
+  python src/weblogo_maker.py --excel_file $i --fasta True --output result/version_0.3/weblogo_hexanucleotides/p_cor/weblogo_feature_random --name ${name_CCE[$c]}.png --p_cor True
+  let c=$c+1
+done
+
+file_rd_dnt=($(find result/version_0.3/comparison_random_sequence_dinucleotide_freq/ -name "enrichment_report*" -type f | sort))
+name_rd_dnt=($(ls result/version_0.3/comparison_random_sequence_dinucleotide_freq/ | sort))
+
+let c=0
+for i in ${file_rd_dnt[@]}; do
+  python src/weblogo_maker.py --excel_file $i --fasta True --output result/version_0.3/weblogo_hexanucleotides/p_cor/weblogo_random_dnt --name ${name_rd_dnt[$c]}.png --p_cor True
+  let c=$c+1
+done
+
+file_CCE_dnt=($(find result/version_0.3/comparison_CCE_sequence_dinucleotide_freq/ -name "enrichment_report*" -type f | sort))
+name_CCE_dnt=($(ls result/version_0.3/comparison_CCE_sequence_dinucleotide_freq/ | sort))
+
+let c=0
+for i in ${file_CCE_dnt[@]}; do
+  python src/weblogo_maker.py --excel_file $i --fasta True --output result/version_0.3/weblogo_hexanucleotides/p_cor/weblogo_CCE_dnt --name ${name_CCE_dnt[$c]}.png --p_cor True
   let c=$c+1
 done
 ```
