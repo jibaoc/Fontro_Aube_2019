@@ -11,7 +11,7 @@ import argparse
 import random
 import sys
 import os
-from dicitonary import amino_acid2codon
+from dicitonary import *
 
 feature_dic = {
     "Small": ["A", "C", "D", "G", "N", "P", "S", "T", "V"], "Tiny": ["A", "C", "G", "S", "T"],
@@ -203,6 +203,128 @@ def sequence_generator(length, prop, feature, ctrl):
     return fseq, ap, cp, gp, tp, ftp
 
 
+def adjusting_count_dic(dic_aa, prop, feature):
+    """
+    This function adjust the proportion of amino acid in groups given in the "feature" list so
+    this group of amino acid reaches the proportion given in "prop" list.
+    :param dic_aa: dictionary of count of amino acid
+    :param prop: (list of int) list of proportion for the feature given in feature list
+    :param feature: (list of string) list of feature
+    :return: the dictionary count for amino acid adjusted
+    """
+    multplication_aa = {aa: [] for aa in "ACDEFGHIKLMNPQRSTVWY"}
+    for i in range(len(feature)):
+        count = 0
+        for aa in feature_dic[feature[i]]:
+            count += dic_aa[aa]
+        for aa in feature_dic[feature[i]]:
+            multplication_aa[aa].append(float(prop[i] * dic_aa["all"]) / count)
+    for aa in multplication_aa.keys():
+        if len(multplication_aa[aa]) > 0:
+            multplication_aa[aa] = sum(multplication_aa[aa])/len(multplication_aa[aa])
+        else:
+            multplication_aa[aa] = 1
+    for aa in multplication_aa.keys():
+        dic_aa[aa] = (round(dic_aa[aa] * multplication_aa[aa], 0))
+    count = 0
+    count2 = 0
+    for aa in multplication_aa.keys():
+        if multplication_aa[aa] != 1:
+            count += dic_aa[aa]
+        else:
+            count2 += dic_aa[aa]
+    for aa in multplication_aa.keys():
+        if multplication_aa[aa] == 1:
+            if count2 != 0:
+                multplication_aa[aa] = float(max(dic_aa["all"] - count, 0)) / count2
+                dic_aa[aa] = (max(round(dic_aa[aa] * (dic_aa["all"] - count) / count2, 0), 0))
+            else:
+                multplication_aa[aa] = 0
+                dic_aa[aa] = 0
+
+    count = 0
+    for aa in multplication_aa.keys():
+        count += dic_aa[aa]
+    dic_aa["all"] = count
+    print(dic_aa)
+    return dic_aa
+
+
+def translator(seq):
+    """
+
+    :param seq: (list of string) list of codon
+    :return: list of codon translated : i.e. amino acid list
+    """
+    aa = ""
+    for i in range(0, len(seq)-2, 3):
+        aa += codon2aminoAcid[seq[i:i+3]]
+    return aa
+
+
+def feature_frequency_calculator(seq, feature):
+    """
+    :param seq: (list of string) list of codons
+    :param feature: (string) the feature of interest
+    :return: the frequency of the feature in sequence 'seq'
+    """
+    aa_seq = translator(seq)
+    count = 0
+    for aa in feature_dic[feature]:
+        count += aa_seq.count(aa)
+    return float(count) / len(aa_seq)
+
+
+def sequence_generator_with_multiple_feature(dic_aa, length, feature, ctrl):
+    """
+    :param dic_aa: dictionary of count of amino acid
+    :param length: (int) the length of the sequence we will create
+    :param feature: (list of string) list of feature
+    :param ctrl: (string) the control exons used to generate the control sequence
+    :return:
+        - fseq : (string) the nucleotide sequence completed
+        - ft_freq : (list of float) the proportion of feature (given in the same order as in "feature" list)
+         in fseq
+    """
+
+    file_dir = os.path.dirname(os.path.realpath(__file__))
+    sys.path.insert(0, file_dir + "/control_dic/")
+    mod = __import__(ctrl + "_dic")
+
+    if ctrl == "RD":
+        count = dic_aa["all"]
+        dic_aa = {aa: int(count / 20) for aa in "ACDEFGHIKLMNPQRSTVWY"}
+        count = 0
+        for aa in dic_aa.keys():
+            count += dic_aa[aa]
+        dic_aa["all"] = count
+    seq = ""
+    for i in range(length/3):
+        if ctrl != "RD":
+            aa_dic = generate_dic(dic_aa, list("ACDEFGHIKLMNPQRSTVWY"))
+            aa_chosen = get_cur_val(aa_dic, random.random())
+            codon_list = amino_acid2codon[aa_chosen].split(",")
+            codon_dic = generate_dic(mod.dc, codon_list)
+            codon_chosen = get_cur_val(codon_dic, random.random())
+        else:
+            aa_dic = generate_dic(dic_aa, list("ACDEFGHIKLMNPQRSTVWY"))
+            aa_chosen = get_cur_val(aa_dic, random.random())
+            codon_list = amino_acid2codon[aa_chosen].split(",")
+            codon_chosen = codon_list[random.randint(0, len(codon_list)-1)]
+        seq += codon_chosen
+
+    ft_freq = []
+    for i in range(len(feature)):
+        ft_freq.append(feature_frequency_calculator(seq, feature[i]))
+    fseq = ""
+    i = 0
+    while i < len(seq):
+        fseq += seq[i:i + 70] + "\r"
+        i += 70
+
+    return fseq, ft_freq
+
+
 def header_generator(length, a_prop, c_prop, g_prop, t_prop, ft_prop, feature, num_seq):
     """
     :param length: (int) the length of the sequence we will create
@@ -221,6 +343,43 @@ def header_generator(length, a_prop, c_prop, g_prop, t_prop, ft_prop, feature, n
     return header
 
 
+def header_generator_multiple_ft(length, ft_freq, features, num_seq):
+    """
+
+    :param length: (int) the length of the sequence we will create
+    :param ft_freq: list of float) the proportion of feature (given in the same order as in "feature" list)
+    :param features: (list of string) list of feature which we want to change the frequency
+    :param num_seq: (int) the num of the current sequence we want to create
+    :return: (string) an header for the sequence of interest
+    """
+    hd = ""
+    for i in range(len(features)):
+        hd += str(features[i]) + " : " + str(ft_freq[i]) + " - "
+
+    header = ">seq" + str(num_seq) + " | " + hd + " | length : " + str(length)
+    return header
+
+
+def dictionnary_count_adaption(prop, feature, ctrl):
+    """
+    Adjustment of the CCE dictionary of count of amino acid : The iterative procedure is very useful
+    when an amino acid is shared between to groups of feature which we want changed the frequency
+    :param prop: (list of int) list of proportion for the feature given in feature list
+    :param feature: (list of string) list of feature
+    :param ctrl: (string) the control exons used to generate the control sequence
+    :return: dictionary of count of amino acid
+    """
+    print("Adjustement of amino acid count dictionary ...")
+    file_dir = os.path.dirname(os.path.realpath(__file__))
+    sys.path.insert(0, file_dir + "/control_dic/")
+    mod = __import__(ctrl + "_dic")
+    dic_aa = mod.da
+
+    for i in range(300):
+        dic_aa = adjusting_count_dic(dic_aa, prop, feature)
+    return dic_aa
+
+
 def fasta_generator(size_int, prop, feature, number_seq, output, out_name, ctrl):
     """
     Write a fasta file of number_seq sequences having a size in  'size_int' and proportion corresponding to a_prop,
@@ -236,17 +395,33 @@ def fasta_generator(size_int, prop, feature, number_seq, output, out_name, ctrl)
     """
     with open(output + out_name + ".fasta", "w") as outfile:
         list_ft_freq = []
-        for i in range(1, number_seq+1):
-            length = random.randint(size_int[0], size_int[1])
-            seq, ap, cp, gp, tp, ftp = sequence_generator(length, prop, feature, ctrl)
-            header = header_generator(length, ap, cp, gp, tp, ftp, feature, i)
-            outfile.write(header + "\n" + seq + "\n")
-            list_ft_freq.append(ftp)
-    mean = 0
-    for val in list_ft_freq:
-        mean += val
-    mean = float(mean)/len(list_ft_freq)
-    print("frequence of " + feature + " amino acids in the file : " + str(mean))
+        list_ft = [[] for i in range(len(feature))]
+        if isinstance(feature, str):
+            for i in range(1, number_seq+1):
+                length = random.randint(size_int[0], size_int[1])
+                seq, ap, cp, gp, tp, ftp = sequence_generator(length, prop, feature, ctrl)
+                header = header_generator(len(seq), ap, cp, gp, tp, ftp, feature, i)
+                list_ft_freq.append(ftp)
+                outfile.write(header + "\n" + seq + "\n")
+        else:
+            dic_aa = dictionnary_count_adaption(prop, feature, ctrl)
+            for i in range(1, number_seq + 1):
+                length = random.randint(size_int[0], size_int[1])
+                seq, ft_freq = sequence_generator_with_multiple_feature(dic_aa, length, feature, ctrl)
+                header = header_generator_multiple_ft(length, ft_freq, feature, i)
+                for i in range(len(ft_freq)):
+                    list_ft[i].append(round(ft_freq[i], 3))
+                outfile.write(header + "\n" + seq + "\n")
+
+    if isinstance(feature, str):
+        mean = 0
+        for val in list_ft_freq:
+            mean += val
+        mean = float(mean)/len(list_ft_freq)
+        print("frequence of " + feature + " amino acids in the file : " + str(mean))
+    else:
+        for i in range(len(list_ft)):
+            print("frequence of " + feature[i] + " amino acids in the file : " + str(float(sum(list_ft[i]))/number_seq))
 
 
 def launcher():
@@ -344,12 +519,25 @@ def launcher():
             print("ERROR : wrong probability value")
             exit(1)
     except ValueError:
-        print("ERROR : wrong probability value")
-        exit(1)
+        try:
+            args.prop = args.prop.split(",")
+            for i in range(len(args.prop)):
+                try:
+                   args.prop[i] = int(args.prop[i])
+                   if 0 < args.prop[i] > 100:
+                       print("ERROR : wrong probability value")
+                       exit(1)
+                   args.prop[i] = float(args.prop[i]) / 100
+                except ValueError:
+                    print("ERROR : wrong probability value in the list")
+                    exit(1)
+        except ValueError:
+            print("ERROR : wrong probability list")
+            exit(1)
 
-    if args.feature not in feature_dic.keys():
-        print("ERROR : unknown feature")
-        exit(1)
+
+    if "," in args.feature:
+        args.feature = args.feature.split(",")
 
     try:
         args.size_inf = int(args.size_inf)
