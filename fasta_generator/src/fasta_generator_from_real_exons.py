@@ -3,6 +3,8 @@ import random
 import sys
 import os
 from dicitonary import *
+from sets import Set
+
 
 feature_dic = {
     "Small": ["A", "C", "D", "G", "N", "P", "S", "T", "V"], "Tiny": ["A", "C", "G", "S", "T"],
@@ -190,6 +192,217 @@ def get_indices_of_feature(codon_list, feature):
     return indices
 
 
+def get_indices(codon_list, aa_list):
+    """
+    :param aa_list: (list of string) a list of amino acid
+    :param codon_list: (list of string) list of codons
+    :return: (list of int) the list of indices in codon_list where there are a codon encoding for
+    the feature 'feature'
+    """
+    aa_seq = translator(codon_list)
+    indices = []
+    for i in range(len(aa_seq)):
+        if aa_seq[i] in aa_list:
+            indices.append(i)
+    return indices
+
+
+def second_feature_enrichment(seq, prop, feature, ctrl):
+    """
+    Calculation of the second enrichment/impoverishment of codons encoding amino acids from certain protein feature
+    :param seq: (string) the sequence to modify
+    :param prop: (list of float) list of proportion to reach for the features in "feature" list
+    :param feature: (list of string) list of feature to enriched or impoverished
+    :param ctrl: (string) CCE/RD
+    :return: the sequence enriched/impoverished for features[1]
+    """
+    if ctrl != "RD":
+        file_dir = os.path.dirname(os.path.realpath(__file__))
+        sys.path.insert(0, file_dir + "/control_dic/")
+        mod = __import__(ctrl + "_dic")
+
+    my_seq = []
+    for i in range(0, len(seq), 3):
+        if i+3 <= len(seq):
+            my_seq.append(seq[i:i+3])
+    # enrichment of a nucleotide
+
+    all_aa = list("ACDEFGHIKLMNPQRSTVWY")
+    cur_prop = feature_frequency_calculator(my_seq, feature[1])
+    inter = list(Set(feature_dic[feature[0]]).intersection(feature_dic[feature[1]]))
+    if len(inter) == len(feature_dic[feature[0]]) or len(inter) == len(feature_dic[feature[1]]):
+        inclusion = True
+    else:
+        inclusion = False
+    if cur_prop > prop[1]:
+        reg = "-"
+        if inclusion:
+            if len(feature_dic[feature[0]]) > len(feature_dic[feature[1]]):
+                aa_modif = feature_dic[feature[1]]
+                aa_to_choose = list(Set(feature_dic[feature[0]]).difference(feature_dic[feature[1]]))
+            else:
+                aa_modif = list(Set(feature_dic[feature[1]]).difference(feature_dic[feature[0]]))
+                aa_to_choose = list(Set(all_aa).difference(Set(feature_dic[feature[1]])))
+        else:
+            aa_modif = list(Set(feature_dic[feature[1]]).difference(Set(inter)))
+            union = Set(feature_dic[feature[1]]).union(feature_dic[feature[0]])
+            aa_to_choose = list(Set(all_aa).difference(union))
+    else:
+        reg = "+"
+        if inclusion:
+            if len(feature_dic[feature[0]]) > len(feature_dic[feature[1]]):
+                aa_modif = list(Set(feature_dic[feature[0]]).difference(feature_dic[feature[1]]))
+                aa_to_choose = list(Set(feature_dic[feature[1]]))
+            else:
+                aa_modif = feature_dic[feature[1]]
+                aa_to_choose = list(Set(feature_dic[feature[1]]).difference(feature_dic[feature[0]]))
+        else:
+            aa_modif = list(Set(all_aa).difference(Set(feature_dic[feature[0]]).union(feature_dic[feature[1]])))
+            aa_to_choose = list(Set(feature_dic[feature[1]]).difference(inter))
+    temp_reg = reg
+
+    while temp_reg == reg:
+        indice_list = get_indices(my_seq, aa_modif)
+        if len(indice_list) == 0:
+            return "".join(my_seq)
+        val = indice_list[random.randint(0, len(indice_list) - 1)]
+        aa_dic = generate_dic(mod.da, aa_to_choose)
+        aa_chosen = get_cur_val(aa_dic, random.random())
+        codon_list = amino_acid2codon[aa_chosen].split(",")
+        codon_dic = generate_dic(mod.dc, codon_list)
+        codon_chosen = get_cur_val(codon_dic, random.random())
+        my_seq[val] = codon_chosen
+
+        cur_prop = feature_frequency_calculator(my_seq, feature[1])
+        if abs(prop[1] - cur_prop) > 0.02:
+            if cur_prop > prop[1]:
+                reg = "-"
+            else:
+                reg = "+"
+        else:
+            reg = "ok"
+
+    rseq = "".join(my_seq)
+
+    return rseq
+
+
+def exon_sequence_generator_with_2_feature(size_int, list_seq, ctrl, feature_interest, prop_feature):
+    """
+    Generation of fasta sequences having the a feature frequency near of  prop_feature.
+    The sequence will be first generated from existing CCE exons sequences
+    ctrl variable.
+    Those sequence can be enriched in one di-nucleotide if
+    dnt_interest is not none.
+
+    :param size_int: list of 2 int) the min size possible and the max size possible of the sequences we want to create
+    :param list_seq: (list of string)  a list of control sequence
+    :param ctrl: (string) CCE or ACE.
+    :param feature_interest: (list of string) the name of 2 features of interest
+    :param prop_feature: (list of float) list of proportion to reach for the features in "feature" list
+    :return:
+        - fseq : the sequence enriched in the 2 features given in  feature_interest
+        - ft1 : proportion in feature_interest[0] in fseq
+        - ft2, :  proportion in feature_interest[1] in fseq
+        - len(rseq) : len of the sequence
+
+    """
+    print("ok")
+    file_dir = os.path.dirname(os.path.realpath(__file__))
+    sys.path.insert(0, file_dir + "/control_dic/")
+    mod = __import__(ctrl + "_dic")
+    seq = ""
+    while len(seq) < size_int[0] or len(seq) > size_int[1]:
+        seq = list_seq[random.randint(0, len(list_seq)-1)]
+
+    my_seq = []
+    for i in range(0, len(seq), 3):
+        if i+3 <= len(seq):
+            my_seq.append(seq[i:i+3])
+    # enrichment of a nucleotide
+
+    # print(my_seq)
+    cur_prop = feature_frequency_calculator(my_seq, feature_interest[0])
+
+    print("ok2")
+    if cur_prop > prop_feature[0]:
+        reg = "-"
+    else:
+        reg = "+"
+    temp_reg = reg
+    # count = 0
+    while temp_reg == reg:
+        if reg == "+":
+            val = random.randint(0, len(my_seq) - 1)
+            if codon2aminoAcid[my_seq[val]] not in feature_dic[feature_interest[0]]:
+                aa_dic = generate_dic(mod.da, feature_dic[feature_interest[0]])
+                aa_chosen = get_cur_val(aa_dic, random.random())
+                codon_list = amino_acid2codon[aa_chosen].split(",")
+                codon_dic = generate_dic(mod.dc, codon_list)
+                codon_chosen = get_cur_val(codon_dic, random.random())
+                my_seq[val] = codon_chosen
+        else:
+            indice_list = get_indices_of_feature(my_seq, feature_interest[0])
+            val = indice_list[random.randint(0, len(indice_list)-1)]
+            aa_list = "ACDEFGHIKLMNPQRSTVWY"
+            list_aa = []
+            for aa in aa_list:
+                if aa not in feature_dic[feature_interest[0]]:
+                    list_aa.append(aa)
+            aa_dic = generate_dic(mod.da, list_aa)
+            aa_chosen = get_cur_val(aa_dic, random.random())
+            codon_list = amino_acid2codon[aa_chosen].split(",")
+            codon_dic = generate_dic(mod.dc, codon_list)
+            codon_chosen = get_cur_val(codon_dic, random.random())
+            my_seq[val] = codon_chosen
+
+        cur_prop = feature_frequency_calculator(my_seq, feature_interest[0])
+        print(str(cur_prop) + ">" + str(prop_feature[0]) + " : " + str(cur_prop > prop_feature))
+        if abs(prop_feature[0] - cur_prop) > 0.02:
+            if cur_prop > prop_feature[0]:
+                reg = "-"
+            else:
+                reg = "+"
+        else:
+            reg = "ok"
+
+    rseq = "".join(my_seq)
+    print(rseq)
+    rseq = second_feature_enrichment(rseq, prop_feature, feature_interest, ctrl)
+    print("---")
+    print(rseq)
+
+    fseq = ""
+    i = 0
+    while i < len(rseq):
+        fseq += rseq[i:i + 70] + "\r"
+        i += 70
+
+    my_seq = []
+    for i in range(0, len(rseq), 3):
+        if i+3 <= len(rseq):
+            my_seq.append(rseq[i:i+3])
+    ft1 = feature_frequency_calculator(my_seq, feature_interest[0])
+    ft2 = feature_frequency_calculator(my_seq, feature_interest[1])
+    return fseq, ft1, ft2, len(rseq)
+
+
+def header_generator_2_ft(length, ft1, ft2, feature_interest, num_seq):
+    """
+    :param length: (int) the length of the current sequence
+    :param feature_interest: (list of string) the name of 2 features of interest
+    :param ft1: (float) proportion in feature_interest[0] in the current sequence
+    :param ft2: (float) proportion in feature_interest[1] in the current sequence
+    :param num_seq: (int) the number of sequence we will create
+    :return: (string) the header of a sequence
+    """
+    header = ">seq_" + str(num_seq) + " | " + str(feature_interest[0]) + " : " + \
+             str(ft1) + " - " + str(feature_interest[1]) + \
+             str(ft2) + " - A : " + \
+             "| length : " + str(length)
+    return header
+
+
 def exon_sequence_generator(size_int, list_seq, ctrl, feature_interest, prop_feature):
     """
     Generation of fasta sequences having the a feature frequency near of  prop_feature.
@@ -317,17 +530,32 @@ def fasta_generator(size_int, number_seq, output, out_name, feature, feature_pro
     list_seq = read_CCE_sequence(ctrl)
     with open(output + out_name + ".fasta", "w") as outfile:
         list_ft_freq = []
-        for i in range(1, number_seq+1):
-            fseq, ap, cp, gp, tp, cur_prop, length = exon_sequence_generator(size_int,
-                                                                             list_seq, ctrl, feature, feature_prop)
-            header = header_generator(length, ap, cp, gp, tp, cur_prop, feature, i)
-            outfile.write(header + "\n" + fseq + "\n")
-            list_ft_freq.append(cur_prop)
-    mean = 0
-    for val in list_ft_freq:
-        mean += val
-    mean = float(mean)/len(list_ft_freq)
-    print("frequence of " + feature + " amino acids in the file : " + str(mean))
+        list_features_prop = [[], []]
+        if isinstance(feature, str):
+            for i in range(1, number_seq+1):
+                fseq, ap, cp, gp, tp, cur_prop, length = exon_sequence_generator(size_int,
+                                                                                 list_seq, ctrl, feature, feature_prop)
+                header = header_generator(length, ap, cp, gp, tp, cur_prop, feature, i)
+                outfile.write(header + "\n" + fseq + "\n")
+                list_ft_freq.append(cur_prop)
+        else:
+            for i in range(1, number_seq+1):
+                fseq, ft1, ft2, length = exon_sequence_generator_with_2_feature(size_int,
+                                                                                list_seq, ctrl, feature, feature_prop)
+                header = header_generator_2_ft(length, ft1, ft2, feature, i)
+                outfile.write(header + "\n" + fseq + "\n")
+                list_features_prop[0].append(ft1)
+                list_features_prop[1].append(ft2)
+    if isinstance(feature, str):
+        mean = 0
+        for val in list_ft_freq:
+            mean += val
+        mean = float(mean)/len(list_ft_freq)
+        print("frequence of " + feature + " amino acids in the file : " + str(mean))
+    else:
+        for i in range(len(list_features_prop)):
+            print("frequence of " + feature[i] + "amino acids in the file : " +
+                  str(float(sum(list_features_prop[i])) / number_seq))
 
 
 def launcher():
@@ -420,17 +648,27 @@ def launcher():
         args.filename = args.ctrl + "_" + args.feature + "_" + args.prop
 
     try:
-        args.prop = float(args.prop)
-        if 0 < args.prop > 1:
+        args.prop = int(args.prop)
+        if 0 < args.prop > 100:
             print("ERROR : wrong probability value")
             exit(1)
+        args.prop = int(args.prop) / 100
     except ValueError:
-        print("ERROR : wrong probability value")
-        exit(1)
-
-    if args.feature not in feature_dic.keys():
-        print("ERROR : unknown feature")
-        exit(1)
+        try:
+            args.prop = args.prop.split(",")
+            for i in range(len(args.prop)):
+                try:
+                   args.prop[i] = int(args.prop[i])
+                   if 0 < args.prop[i] > 100:
+                       print("ERROR : wrong probability value")
+                       exit(1)
+                   args.prop[i] = float(args.prop[i]) / 100
+                except ValueError:
+                    print("ERROR : wrong probability value in the list")
+                    exit(1)
+        except ValueError:
+            print("ERROR : wrong probability list")
+            exit(1)
 
     try:
         args.size_inf = int(args.size_inf)
@@ -460,6 +698,9 @@ def launcher():
         print("The given path in 'output' doesn't exist !")
         print("fasta file will be created in your current working directory")
         args.output = "./"
+
+    if "," in args.feature:
+        args.feature = args.feature.split(",")
 
     if args.output[-1] != "/":
         args.output += "/"
