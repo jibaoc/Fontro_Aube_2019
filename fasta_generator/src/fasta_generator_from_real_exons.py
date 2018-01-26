@@ -307,7 +307,6 @@ def exon_sequence_generator_with_2_feature(size_int, list_seq, ctrl, feature_int
         - len(rseq) : len of the sequence
 
     """
-    print("ok")
     file_dir = os.path.dirname(os.path.realpath(__file__))
     sys.path.insert(0, file_dir + "/control_dic/")
     mod = __import__(ctrl + "_dic")
@@ -323,8 +322,6 @@ def exon_sequence_generator_with_2_feature(size_int, list_seq, ctrl, feature_int
 
     # print(my_seq)
     cur_prop = feature_frequency_calculator(my_seq, feature_interest[0])
-
-    print("ok2")
     if cur_prop > prop_feature[0]:
         reg = "-"
     else:
@@ -357,7 +354,6 @@ def exon_sequence_generator_with_2_feature(size_int, list_seq, ctrl, feature_int
             my_seq[val] = codon_chosen
 
         cur_prop = feature_frequency_calculator(my_seq, feature_interest[0])
-        print(str(cur_prop) + ">" + str(prop_feature[0]) + " : " + str(cur_prop > prop_feature))
         if abs(prop_feature[0] - cur_prop) > 0.02:
             if cur_prop > prop_feature[0]:
                 reg = "-"
@@ -367,10 +363,7 @@ def exon_sequence_generator_with_2_feature(size_int, list_seq, ctrl, feature_int
             reg = "ok"
 
     rseq = "".join(my_seq)
-    print(rseq)
     rseq = second_feature_enrichment(rseq, prop_feature, feature_interest, ctrl)
-    print("---")
-    print(rseq)
 
     fseq = ""
     i = 0
@@ -652,7 +645,7 @@ def launcher():
         if 0 < args.prop > 100:
             print("ERROR : wrong probability value")
             exit(1)
-        args.prop = int(args.prop) / 100
+        args.prop = float(args.prop) / 100
     except ValueError:
         try:
             args.prop = args.prop.split(",")
