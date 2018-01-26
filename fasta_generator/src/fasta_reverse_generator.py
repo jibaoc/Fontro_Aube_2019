@@ -246,7 +246,6 @@ def adjusting_count_dic(dic_aa, prop, feature):
     for aa in multplication_aa.keys():
         count += dic_aa[aa]
     dic_aa["all"] = count
-    print(dic_aa)
     return dic_aa
 
 
@@ -369,7 +368,6 @@ def dictionnary_count_adaption(prop, feature, ctrl):
     :param ctrl: (string) the control exons used to generate the control sequence
     :return: dictionary of count of amino acid
     """
-    print("Adjustement of amino acid count dictionary ...")
     file_dir = os.path.dirname(os.path.realpath(__file__))
     sys.path.insert(0, file_dir + "/control_dic/")
     mod = __import__(ctrl + "_dic")

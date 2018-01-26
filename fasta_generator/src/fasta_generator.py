@@ -413,7 +413,7 @@ def exon_sequence_generator(length, ctrl, dnt_interest):
             exit(1)
         seq += str(codon)
 
-    # enrichment of a nucleotide
+    # enrichment of a di-nucleotide
     if dnt_interest is not None:
         seq = list(seq)
         dnt_prop = dinucleotide_calculator_bis("".join(seq))
@@ -452,6 +452,92 @@ def exon_sequence_generator(length, ctrl, dnt_interest):
     return seq, dnt_prop_txt, dnt_prop
 
 
+def nt_freq_calculator(seq, nt):
+    """
+    :param seq: (string) a nucleotide sequence
+    :param nt: (string of one character) nt nt for which we want to calculate the frequency
+    :return: the freq of nt in seq
+    """
+    if nt in ["A", "T", "G", "C"]:
+        nt_prop = float(seq.count(nt)) / len(seq)
+    else:
+        count = 0
+        for n in iupac[nt]:
+            count += seq.count(n)
+        nt_prop = float(count) / len(seq)
+    return nt_prop
+
+
+def exon_nt_sequence_generator(length, ctrl, nt_interest):
+    """
+    Generation of fasta sequences having the same codon frequency as
+    the one in CCE/ACE/ALL exons in fasterDB according to the
+    ctrl variable.
+    Those sequence can be enriched in one di-nucleotide if
+    dnt_interest is not none.
+
+    :param length: (int) the length of the sequence to generate
+    :param ctrl: (string) CCE or ACE or ALL.
+    :param nt_interest: (tuple of a string and a float) the first value is the nt,
+    the other is its proportion.
+    :return: my_seq, dnt_prop_txt, nt_prop
+     - my_seq : (string) the random sequence generated
+     - nt_prop_txt : (string) the proportion of each
+     nucleotides in my_seq
+     - nt_prop (list of float) proportion
+     of each nucleotide
+    """
+    file_dir = os.path.dirname(os.path.realpath(__file__))
+    sys.path.insert(0, file_dir + "/control_dic/")
+    mod = __import__(ctrl + "_dic")
+    seq = ""
+    ctrl_dic = ctrl_dic_adapter(mod.dc)
+
+    # generation of the sequence
+    for i in range(length/3):
+        codon = get_cur_codon(ctrl_dic, random.random())
+        if codon is None:
+            print("Something went wrong ! ")
+            exit(1)
+        seq += str(codon)
+
+    # enrichment of a nucleotide
+    if nt_interest is not None:
+        seq = list(seq)
+        nt_prop = nt_freq_calculator("".join(seq), nt_interest[0])
+
+        if nt_prop > nt_interest[1]:
+            reg = "-"
+        else:
+            reg = "+"
+        temp_reg = reg
+        while temp_reg == reg:
+            if reg == "+":
+                val = random.randint(0, len(seq)-1)
+                if nt_interest[0] in ["A", "T", "G", "C"]:
+                    seq[val] = nt_interest[0]
+                else:
+                    seq[val] = iupac[nt_interest[0]][random.randint(0, len(iupac[nt_interest[0]])-1)]
+            else:
+                break
+            nt_prop = nt_freq_calculator("".join(seq), nt_interest[0])
+            if nt_prop >= nt_interest[1]:
+                temp_reg = "-"
+            else:
+                temp_reg = "+"
+        seq = "".join(seq)
+    nt_prop_txt = "A : " + str(float(seq.count("A")) / len(seq)) + " | C :" + str(float(seq.count("C")) / len(seq)) + " | "
+    nt_prop_txt += "G : " + str(float(seq.count("G")) / len(seq)) + " | T :" + str(float(seq.count("G")) / len(seq))
+
+    nt_prop = []
+    nt_prop.append(float(seq.count("A")) / len(seq))
+    nt_prop.append(float(seq.count("C")) / len(seq))
+    nt_prop.append(float(seq.count("G")) / len(seq))
+    nt_prop.append(float(seq.count("T")) / len(seq))
+
+    return seq, nt_prop_txt, nt_prop
+
+
 def ctrl_fasta_dnt_generator(size_int, dnt_interest, number_seq, output, out_name, ctrl):
     """
 
@@ -463,18 +549,34 @@ def ctrl_fasta_dnt_generator(size_int, dnt_interest, number_seq, output, out_nam
     :param out_name: (string) the name of the fasta file.
     :param ctrl: (string) CCE or ACE or ALL.
     """
+    freq_nt = [0, 0, 0, 0]
     res_stat = [0 for i in range(16)]
     with open(output + out_name + ".fasta", "w") as outfile:
         for i in range(1, number_seq+1):
             length = random.randint(size_int[0], size_int[1])
-            seq, text_header, dnt_prop = exon_sequence_generator(length, ctrl, dnt_interest)
-            for j in range(len(list_name)):
-                res_stat[j] += dnt_prop[list_name[j]]
+            if len(dnt_interest[0]) > 1:
+                seq, text_header, dnt_prop = exon_sequence_generator(length, ctrl, dnt_interest)
+                for j in range(len(list_name)):
+                    res_stat[j] += dnt_prop[list_name[j]]
+            else:
+                seq, text_header, nt_prop = exon_nt_sequence_generator(length, ctrl, dnt_interest)
+                for i in range(len(freq_nt)):
+                    freq_nt[i] += nt_prop[i]
             header = header_dnt_generator(len(seq), text_header, i)
             outfile.write(header + "\n" + seq + "\n")
-    for j in range(len(res_stat)):
-        res_stat[j] /= number_seq
-    return res_stat
+    if len(dnt_interest[0]) > 1:
+        for j in range(len(res_stat)):
+            res_stat[j] /= number_seq
+        return res_stat
+    else:
+        for i in range(len(freq_nt)):
+            freq_nt[i] /=  number_seq
+        seq = ""
+        nt_list = ["A", "C", "G", "T"]
+        for i in range(len(nt_list)):
+            seq += str(nt_list[i]) + " : " + str(freq_nt[i]) + " - "
+        return seq
+
 
 ######################################################
 #             Manager functions
@@ -633,7 +735,7 @@ def launcher():
                         default=False)
     parser.add_argument('--ctrl', dest='ctrl', help="control dic we want to use",
                         default=None)
-    parser.add_argument('--dnt', dest='dnt', help="the dnt you want to enriched in the ctrl (ACE/CCE/ALL) sequences",
+    parser.add_argument('--nt_dnt', dest='nt_dnt', help="the dnt or the nt you want to enriched in the ctrl (ACE/CCE/ALL) sequences",
                         default=None)
     parser.add_argument('--freq', dest='freq', help="the freq of the dnt you want to enriched in the ctrl "
                                                     "(ACE/CCE/ALL) sequences",
@@ -741,13 +843,22 @@ def launcher():
 
         else:
             print("ouch will be hard")
-    else:
-        if args.dnt is not None and args.freq is not None:
-            interest_dnt = [args.dnt, float(args.freq)]
+    elif args.ctrl in ["CCE", "ACE"]:
+        if args.nt_dnt is not None and args.freq is not None:
+            interest_dnt = [args.nt_dnt, float(args.freq)]
         else:
             interest_dnt = None
+
         res_stat = ctrl_fasta_dnt_generator(size_int, interest_dnt, args.nbr_seq, args.output, args.filename, args.ctrl)
-        display_dnt_prop(res_stat, "proportion in the file : ")
+
+        if not isinstance(res_stat, str):
+            display_dnt_prop(res_stat, "proportion in the file : ")
+        else:
+            print("proportion in the file : ")
+            print(res_stat)
+    else:
+        print("Unrocognized control...")
+        exit(1)
 
 
 if __name__ == "__main__":
