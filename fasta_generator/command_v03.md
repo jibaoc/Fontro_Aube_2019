@@ -12,11 +12,11 @@ Make sure you're useing the good version of the program
 >4. Sort by the column name in alphabetical order then save the current sheet as csv with the name 'CCE_reading_frame.csv' in the folder srf of this directory
 >5. Delete the header
 
-**Do exactly the sanme thing with the file `/home/nicolas/Documents/22_distribution_codons_decil_exon/ACE/query_results.xlsx`**
+**Do exactly the same thing with the file `/home/nicolas/Documents/22_distribution_codons_decil_exon/ACE/query_results.xlsx`**
 
-*NB : you can create those file if you want by creating a file with two collumn the first one containing a name : and the second one containing a nucleotide sequence. Those file will be the reference sequence for the program `src/src/fasta_generator_from_real_exons.py`*
+*NB : you can create those files if you want by creating a file with two collumn the first one containing a name : and the second one containing a nucleotide sequence. Those files will be the reference sequence for the program `src/src/fasta_generator_from_real_exons.py`*
 
-> **Note : the frequency of feature that will be used for the creation of fasta files is given in the folder /data of this current directory
+> Note : the frequency of feature that will be used for the creation of fasta files is given in the folder /data of this current directory
 
 
 # Command line used
@@ -25,7 +25,7 @@ Make sure you're useing the good version of the program
 
 ### I A - Creation of fasta files containing totaly random sequence.
 
-The totaly random sequence means that the sequence where generated using the codon frequency of CCE fasta_generator_from_real_exons but that the codon where chosen one by one according to their frequency in CCE exons.
+The totaly random sequence means that the sequence where generated using the codon frequency of CCE but the chain of codon is totally random
 
 ```sh
 mkdir result/version_0.3
@@ -403,3 +403,51 @@ for i in ${file_CCE_dnt[@]}; do
   let c=$c+1
 done
 ```
+
+Creation of the weblogos related to the hexanucleotide enriched in the random sequence with specific enrichement
+here all the **10 enriched having the most different ratio of (observed-control)/control frequency**
+
+```sh
+mkdir result/version_0.3/weblogo_hexanucleotides/10_hexnt/
+mkdir result/version_0.3/weblogo_hexanucleotides/10_hexnt/weblogo_feature_random
+mkdir result/version_0.3/weblogo_hexanucleotides/10_hexnt/weblogo_feature_CCEmutated
+mkdir result/version_0.3/weblogo_hexanucleotides/10_hexnt/weblogo_random_dnt
+mkdir result/version_0.3/weblogo_hexanucleotides/10_hexnt/weblogo_CCE_dnt
+
+
+file_CCE_mutated=($(find result/version_0.3/comparison_CCEmutated_sequence_feature_freq/ -name "enrichment_report*" -type f | sort))
+name_CCE_mutated=($(ls result/version_0.3/comparison_CCEmutated_sequence_feature_freq/ | sort))
+
+let c=0
+for i in ${file_CCE_mutated[@]}; do
+  python src/weblogo_maker.py --excel_file $i --fasta True --output result/version_0.3/weblogo_hexanucleotides/10_hexnt/weblogo_feature_CCEmutated --name ${name_CCE_mutated[$c]}.png --p_cor ten
+  let c=$c+1
+done
+
+
+file_CCE=($(find result/version_0.3/comparison_random_sequence_feature_freq/ -name "enrichment_report*" -type f | sort))
+name_CCE=($(ls result/version_0.3/comparison_random_sequence_feature_freq/ | sort))
+
+let c=0
+for i in ${file_CCE[@]}; do
+  python src/weblogo_maker.py --excel_file $i --fasta True --output result/version_0.3/weblogo_hexanucleotides/10_hexnt/weblogo_feature_random --name ${name_CCE[$c]}.png --p_cor ten
+  let c=$c+1
+done
+
+file_rd_dnt=($(find result/version_0.3/comparison_random_sequence_dinucleotide_freq/ -name "enrichment_report*" -type f | sort))
+name_rd_dnt=($(ls result/version_0.3/comparison_random_sequence_dinucleotide_freq/ | sort))
+
+let c=0
+for i in ${file_rd_dnt[@]}; do
+  python src/weblogo_maker.py --excel_file $i --fasta True --output result/version_0.3/weblogo_hexanucleotides/10_hexnt/weblogo_random_dnt --name ${name_rd_dnt[$c]}.png --p_cor ten
+  let c=$c+1
+done
+
+file_CCE_dnt=($(find result/version_0.3/comparison_CCE_sequence_dinucleotide_freq/ -name "enrichment_report*" -type f | sort))
+name_CCE_dnt=($(ls result/version_0.3/comparison_CCE_sequence_dinucleotide_freq/ | sort))
+
+let c=0
+for i in ${file_CCE_dnt[@]}; do
+  python src/weblogo_maker.py --excel_file $i --fasta True --output result/version_0.3/weblogo_hexanucleotides/10_hexnt/weblogo_CCE_dnt --name ${name_CCE_dnt[$c]}.png --p_cor ten
+  let c=$c+1
+done
