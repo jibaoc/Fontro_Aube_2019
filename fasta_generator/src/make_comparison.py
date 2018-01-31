@@ -16,6 +16,8 @@ from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import FloatVector
 import xlsxwriter
 import math
+from math import sqrt
+from ncephes import cprob
 
 ##################################################
 #                 Function
@@ -380,6 +382,28 @@ def create_dic(fasta_file):
     return res_dic, [all_hexa, all_dnt, all_nt, all_codon, all_codon_pos, all_aa]
 
 
+def frequency_test(obs1, tot1, obs2, tot2):
+    """
+
+    :param obs1: (int) the count number of an amino acid X in the set of protein 1.
+    :param tot1: (int) the total number of amino acids in the set of protein 1.
+    :param obs2: (int) the count number of an amino acid X in the set of protein 2.
+    :param tot2: (int) the total number of amino acids in the set of protein 2.
+    :return: proportion test p-value
+    """
+    mean1 = float(obs1) / tot1
+    mean2 = float(obs2) / tot2
+
+    var1 = float(obs1) * (1 - mean1) * (1 - mean1) + (tot1 - obs1) * mean1 * mean1
+    var2 = float(obs2) * (1 - mean2) * (1 - mean2) + (tot2 - obs2) * mean2 * mean2
+
+    df = tot1 + tot2 - 2
+    svar = (var1 + var2) / df
+    t = (mean1-mean2) / sqrt(svar*(1.0/tot1 + 1.0/tot2))
+
+    return cprob.incbet(0.5*df, 0.5, df/(df+t*t))
+
+
 def get_dic_pvalue(dic_fasta, dic_control, ctrl_all, fasta_all):
     """
     Calculate the p-value with an hypergeomtric test of the count
@@ -404,6 +428,28 @@ def get_dic_pvalue(dic_fasta, dic_control, ctrl_all, fasta_all):
             p_val[key] = p1
         else:
             p_val[key] = p2
+    return p_val
+
+
+def get_dic_pvalue2(dic_fasta, dic_control, ctrl_all, fasta_all):
+    """
+    Calculate the p-value with an hypergeomtric test of the count
+    of the hexanucleotide, di-nucleotide, codon, codon position nucleotides,
+    amino acids, or others in a control set of exons and the exons in the fasta file
+
+    :param dic_fasta:(dictionary of int) the count of the hexanucleotide, di-nucleotide,
+    codon, codon position nucleotides, amino acids, or others in the fasta file given by the user
+    :param dic_control:(dictionary of int) the count of the hexanucleotide, di-nucleotide,
+    codon, codon position nucleotides, amino acids, or others in the control exons (exons CCE/ALL/ACE of fasterDB)
+    :param ctrl_all: (int) the total number of the hexanucleotide, di-nucleotide,
+    codon, codon position nucleotides, amino acids, or others in the control set of exons
+    :param fasta_all:(int) the total number of the hexanucleotide, di-nucleotide,
+    codon, codon position nucleotides, amino acids, or others in the fasta file
+    :return: (dictionary of float) for each element give it's calculated p-value
+    """
+    p_val = {}
+    for key in dic_fasta.keys():
+        p_val[key] = frequency_test(dic_fasta[key], fasta_all, dic_control[key], ctrl_all)
     return p_val
 
 
@@ -496,7 +542,7 @@ def calculate_random_dic():
     return [d6_r, ddnt_r, nt_r, dc_r, dcp_r, da_r, sh, hy, ch, po, mi]
 
 
-def calculate_all_p_value_dic(fasta_dics, exon_type, all_list):
+def calculate_all_p_value_dic(fasta_dics, exon_type, all_list, hyper):
     """
     Calculate the p-value between the count of hexanucleotide, di-nucleotide,
     codon, codon position nucleotides, amino acids, and others elements in a control set and in the
@@ -532,10 +578,16 @@ def calculate_all_p_value_dic(fasta_dics, exon_type, all_list):
     """
     for i in range(len(ctrl_dics)):
         print(str(i) + "dics out of " + str(11))
-        if i < 6:
-            p_val_dics.append(get_dic_pvalue(fasta_dics[i], ctrl_dics[i], ctrl_dics[i]["all"], all_list[i]))
-        elif i < 11:
-            p_val_dics.append(get_dic_pvalue(fasta_dics[i], ctrl_dics[i], ctrl_dics[5]["all"], all_list[5]))
+        if hyper:
+            if i < 6:
+                p_val_dics.append(get_dic_pvalue(fasta_dics[i], ctrl_dics[i], ctrl_dics[i]["all"], all_list[i]))
+            elif i < 11:
+                p_val_dics.append(get_dic_pvalue(fasta_dics[i], ctrl_dics[i], ctrl_dics[5]["all"], all_list[5]))
+        else:
+            if i < 6:
+                p_val_dics.append(get_dic_pvalue2(fasta_dics[i], ctrl_dics[i], ctrl_dics[i]["all"], all_list[i]))
+            elif i < 11:
+                p_val_dics.append(get_dic_pvalue2(fasta_dics[i], ctrl_dics[i], ctrl_dics[5]["all"], all_list[5]))
         """
         elif i >= 8:
             p_val_dics.append(get_propensity_pvalue(fasta_dics[i], ctrl_dics[i]))
@@ -788,7 +840,7 @@ def create_fusions_dic(list_dics):
     return grp_dics, prop_dics
 
 
-def main(fasta_file, output, motif, exon_type):
+def main(fasta_file, output, motif, exon_type, hyper):
     """
     Execute the core program
 
@@ -798,7 +850,7 @@ def main(fasta_file, output, motif, exon_type):
     :param exon_type: (string) the name of the control set of exons
     """
     fasta_dics, all_list = create_dic(fasta_file)
-    p_val_dics, ctrl_dics = calculate_all_p_value_dic(fasta_dics, exon_type, all_list)
+    p_val_dics, ctrl_dics = calculate_all_p_value_dic(fasta_dics, exon_type, all_list, hyper)
     print("Creating hexa content")
     hexa_content = get_hexanucleotide_content(ctrl_dics[0], fasta_dics[0], p_val_dics[0],
                                               exon_type, motif, ctrl_dics[0]["all"], all_list[0])
@@ -844,6 +896,7 @@ a fasta file to a desired control set of exons (taken from fasterDB)
                                            'of exons --motif nucleotid_motif')
     # Arguments for the parser
 
+    parser.add_argument('--hyper', dest='hyper', help=" True if we want to use the hyper test false else", default=True)
     required_group = parser.add_argument_group("required arguments")
     required_group.add_argument('--output', dest='output', help="An output folder", required=True)
     required_group.add_argument('--fasta', dest='fasta', help="Your fasta file", required=True)
@@ -852,7 +905,12 @@ a fasta file to a desired control set of exons (taken from fasterDB)
 
     args = parser.parse_args()
 
-    main(args.fasta, args.output, args.motif, args.ctrl)
+    if args.hyper == "True":
+        args.hyper = True
+    elif args.hyper == "False":
+        args.hyper = False
+
+    main(args.fasta, args.output, args.motif, args.ctrl, args.hyper)
 
 
 if __name__ == "__main__":
