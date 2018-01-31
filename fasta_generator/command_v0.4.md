@@ -441,6 +441,9 @@ done
 
 ## Hexanucleotides - Pie_Chart
 
+You must execute this command becouse of a bad commit order...
+git co v0.5
+ 
 
 ### exons set of interest
 
