@@ -411,7 +411,6 @@ def exon_2_nt_sequence_generator(size_int, list_seq, ctrl, nt_interest, prop_int
     # generation of the sequence
     while len(seq) < size_int[0] or len(seq) > size_int[1]:
         seq = list_seq[random.randint(0, len(list_seq)-1)]
-    print(seq)
     # enrichment of a nucleotide
     if nt_interest is not None:
         seq = list(seq)
@@ -440,7 +439,6 @@ def exon_2_nt_sequence_generator(size_int, list_seq, ctrl, nt_interest, prop_int
         seq = "".join(seq)
 
     seq = second_nt_enrichment(seq, prop_interest, nt_interest, ctrl)
-    print(seq)
     nt_prop_txt = "A : " + str(float(seq.count("A")) / len(seq)) + " | C :" + str(float(seq.count("C")) / len(seq)) + " | "
     nt_prop_txt += "G : " + str(float(seq.count("G")) / len(seq)) + " | T :" + str(float(seq.count("G")) / len(seq))
 
