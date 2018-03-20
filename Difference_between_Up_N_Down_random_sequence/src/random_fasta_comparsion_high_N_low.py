@@ -5,8 +5,8 @@
 Description:
 
 The goal of this script is to:
- 1. Create a lot of random fasta enriched in a particular unit (*nucleotide*, *di-nucleotide* or *feature*)
- 2. Create a lot of random fasta impoverished in **the same unit** (*nucleotide*, *di-nucleotide* or *feature*)
+ 1. Create a lot of random fasta enriched in a particular unit (*nucleotide*, *di-nucleotide* or *feature*) and calculates the mean frequency of this unit in the fasta file
+ 2. Create a lot of random fasta impoverished in **the same unit** (*nucleotide*, *di-nucleotide* or *feature*) and calculates the mean frequency of this unit in the fasta file
 
 And then compare their frequency for this unit for each couple of random fasta enriched and impoverished \
 (for this unit). To compare their frequency, the relative frequency is computed
