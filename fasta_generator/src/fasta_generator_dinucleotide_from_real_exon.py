@@ -2,6 +2,7 @@ import argparse
 import os
 import random
 import sys
+import numpy as np
 from sets import Set
 
 
@@ -182,8 +183,18 @@ def exon_sequence_generator(size_int, list_seq, ctrl, dnt_interest):
     if dnt_interest is not None:
         seq = list(seq)
         dnt_prop = dinucleotide_calculator_bis("".join(seq))
-
+        seqlen = len(seq) - 1
         if dnt_prop[dnt_interest[0]] > dnt_interest[1]:
+            freq_interest = rounder(
+                ((dnt_interest[1] * 2 + (1. / seqlen)) / 2) + float(np.random.randn() / 30), 4, True)
+        else:
+            freq_interest = rounder(
+                ((dnt_interest[1] * 2 - (1. / seqlen)) / 2) + float(np.random.randn() / 30), 4, False)
+        if freq_interest > 1.:
+            freq_interest = 1
+        if freq_interest < 0:
+            freq_interest = 0
+        if dnt_prop[dnt_interest[0]] > freq_interest:
             reg = "-"
         else:
             reg = "+"
@@ -207,10 +218,12 @@ def exon_sequence_generator(size_int, list_seq, ctrl, dnt_interest):
                 seq[ind+1] = dnt_choosed[1]
 
             dnt_prop = dinucleotide_calculator_bis("".join(seq))
-            if dnt_prop[dnt_interest[0]] >= dnt_interest[1]:
+            if dnt_prop[dnt_interest[0]] > freq_interest:
                 temp_reg = "-"
             else:
                 temp_reg = "+"
+            if dnt_prop[dnt_interest[0]] == freq_interest:
+                temp_reg = "ok"
         seq = "".join(seq)
     dnt_prop_txt = ""
     dnt_prop = dinucleotide_calculator_bis(seq)
@@ -255,6 +268,16 @@ def get_nt_indices(seq, nt):
                 indices.append(i)
     return indices
 
+
+def rounder(num, digits, up=True):
+    import math
+    mul = 10**digits
+    if up:
+        return math.ceil(num * mul)/mul
+    else:
+        return math.floor(num*mul)/mul
+
+
 def exon_nt_sequence_generator(size_int, list_seq, ctrl, nt_interest):
     """
     Generation of fasta sequences having the same codon frequency as
@@ -296,6 +319,14 @@ def exon_nt_sequence_generator(size_int, list_seq, ctrl, nt_interest):
         nt_prop = nt_freq_calculator("".join(seq), nt_interest[0])
 
         if nt_prop > nt_interest[1]:
+            freq_interest = rounder((((nt_interest[1] * 2 + (1. / len(seq))) / 2)) + float(np.random.normal(scale=1./30)), 4, True)
+        else:
+            freq_interest = rounder(((nt_interest[1] * 2 - (1. / len(seq))) / 2) + float(np.random.normal(scale=1./30)), 4, False)
+        if freq_interest > 1.:
+            freq_interest = 1
+        if freq_interest < 0:
+            freq_interest = 0
+        if nt_prop > freq_interest:
             reg = "-"
         else:
             reg = "+"
@@ -315,10 +346,12 @@ def exon_nt_sequence_generator(size_int, list_seq, ctrl, nt_interest):
                 seq[ind] = nt_chosen
 
             nt_prop = nt_freq_calculator("".join(seq), nt_interest[0])
-            if nt_prop >= nt_interest[1]:
+            if nt_prop > freq_interest:
                 temp_reg = "-"
             else:
                 temp_reg = "+"
+            if nt_prop == freq_interest:
+                temp_reg = "ok"
         seq = "".join(seq)
     nt_prop_txt = "A : " + str(float(seq.count("A")) / len(seq)) + " | C :" + str(float(seq.count("C")) / len(seq)) + " | "
     nt_prop_txt += "G : " + str(float(seq.count("G")) / len(seq)) + " | T :" + str(float(seq.count("G")) / len(seq))
@@ -494,7 +527,7 @@ def ctrl_fasta_nt_dnt_generator(size_int, nt_dnt_interest, number_seq, output, o
     res_stat = [0 for i in range(16)]
     with open(output + out_name + ".fasta", "w") as outfile:
         for i in range(1, number_seq+1):
-            if len(nt_dnt_interest[0]) > 1:
+            if nt_dnt_interest is None or len(nt_dnt_interest[0]) > 1:
                 seq, text_header, dnt_prop = exon_sequence_generator(size_int, list_seq, ctrl, nt_dnt_interest)
                 for j in range(len(list_name)):
                     res_stat[j] += dnt_prop[list_name[j]]
@@ -504,7 +537,7 @@ def ctrl_fasta_nt_dnt_generator(size_int, nt_dnt_interest, number_seq, output, o
                     freq_nt[i] += nt_prop[i]
             header = header_dnt_generator(len(seq), text_header, i)
             outfile.write(header + "\n" + seq + "\n")
-    if len(nt_dnt_interest[0]) > 1:
+    if nt_dnt_interest is None or len(nt_dnt_interest[0]) > 1:
         for j in range(len(res_stat)):
             res_stat[j] /= number_seq
         return res_stat
@@ -627,24 +660,27 @@ def launcher():
 
     size_int = [args.size_inf, args.size_max]
     interest_dnt = None
-    if "," in args.nt_dnt:
-        args.nt_dnt = args.nt_dnt.split(",")
-        args.freq = args.freq.split(",")
-        args.freq[0] = float(args.freq[0])
-        args.freq[1] = float(args.freq[1])
-    else:
-        if args.nt_dnt is not None and args.freq is not None:
-            interest_dnt = [args.nt_dnt, float(args.freq)]
+    if args.nt_dnt is not None:
+        if "," in args.nt_dnt:
+            args.nt_dnt = args.nt_dnt.split(",")
+            args.freq = args.freq.split(",")
+            args.freq[0] = float(args.freq[0])
+            args.freq[1] = float(args.freq[1])
+            interest_dnt = [args.nt_dnt, args.freq]
         else:
-            interest_dnt = None
+            interest_dnt = [args.nt_dnt, float(args.freq)]
+    else:
+        interest_dnt = None
 
     if not isinstance(args.nt_dnt, list):
         res_stat = ctrl_fasta_nt_dnt_generator(size_int, interest_dnt, args.nbr_seq, args.output, args.filename, args.ctrl)
-        if len(interest_dnt[0]) > 1:
-            display_dnt_prop(res_stat, "proportion in the file : ")
-        else:
-            print("proportion in the file : ")
-            print(res_stat)
+        print(interest_dnt)
+        if interest_dnt is not None:
+            if len(interest_dnt[0]) > 1:
+                display_dnt_prop(res_stat, "proportion in the file : ")
+            else:
+                print("proportion in the file : ")
+                print(res_stat)
     else:
         if len(args.nt_dnt) > 2:
             print("List of nt too long...")
