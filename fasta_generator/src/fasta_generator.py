@@ -11,6 +11,7 @@ import copy
 from operator import itemgetter
 import sys
 from sets import Set
+import numpy as np
 
 ################################
 #      Global variables        #
@@ -83,7 +84,7 @@ def flexible_sequence_generator(length, a_prop, t_prop, c_prop, g_prop):
     fseq = ""
     i = 0
     while i < len(seq):
-        fseq += seq[i:i+70] + "\r"
+        fseq += seq[i:i+70] + "\n"
         i += 70
 
     ap = round(float(seq.count("A")) / len(seq), 2)
@@ -432,6 +433,28 @@ def get_nt_indices(seq, nt):
     return indices
 
 
+def get_indices(seq, dnt_interest):
+    """
+    :param seq: (string) a nucleotide sequence
+    :param dnt_interest: (string) a di-nt of interest
+    :return: list of in : the position where the dnt_of interest are found in seq
+    """
+    nt_list = ["A", "T", "G", "C"]
+    if dnt_interest[0] in nt_list and dnt_interest[1] in nt_list:
+        dnt_of_interest = [dnt_interest]
+    elif dnt_interest[0] in nt_list and dnt_interest[1] not in nt_list:
+        dnt_of_interest = [dnt_interest[0] + b for b in iupac[dnt_interest[1]]]
+    elif dnt_interest[0] not in nt_list and dnt_interest[1] in nt_list:
+        dnt_of_interest = [a + dnt_interest[1] for a in iupac[dnt_interest[0]]]
+    else:
+        dnt_of_interest = [a + b for a in iupac[dnt_interest[0]] for b in iupac[dnt_interest[1]]]
+    indices = []
+    for i in range(len(seq)-1):
+        if "".join(seq[i:i+2]) in dnt_of_interest:
+            indices.append(i)
+    return indices
+
+
 def exon_sequence_generator(length, ctrl, dnt_interest):
     """
     Generation of fasta sequences having the same codon frequency as
@@ -464,13 +487,23 @@ def exon_sequence_generator(length, ctrl, dnt_interest):
             print("Something went wrong ! ")
             exit(1)
         seq += str(codon)
-
     # enrichment of a di-nucleotide
+    seqlen = len(seq) - 1
     if dnt_interest is not None:
         seq = list(seq)
         dnt_prop = dinucleotide_calculator_bis("".join(seq))
 
         if dnt_prop[dnt_interest[0]] > dnt_interest[1]:
+            freq_interest = rounder(
+                (((dnt_interest[1] * 2 + (1. / seqlen)) / 2)) + float(np.random.normal(scale=1. / 30)), 4, True)
+        else:
+            freq_interest = rounder(
+                ((dnt_interest[1] * 2 - (1. / seqlen)) / 2) + float(np.random.normal(scale=1. / 30)), 4, False)
+        if freq_interest > 1.:
+            freq_interest = 1
+        if freq_interest < 0:
+            freq_interest = 0
+        if dnt_prop[dnt_interest[0]] > freq_interest:
             reg = "-"
         else:
             reg = "+"
@@ -487,12 +520,18 @@ def exon_sequence_generator(length, ctrl, dnt_interest):
                 else:
                     seq[val+1] = iupac[dnt_interest[0][1]][random.randint(0, len(iupac[dnt_interest[0][1]])-1)]
             else:
-                break
+                indices = get_indices(seq, dnt_interest[0])
+                ind = indices[random.randint(0, len(indices)-1)]
+                dnt_choosed = list_name[random.randint(0, len(list_name)-1)]
+                seq[ind] = dnt_choosed[0]
+                seq[ind+1] = dnt_choosed[1]
             dnt_prop = dinucleotide_calculator_bis("".join(seq))
-            if dnt_prop[dnt_interest[0]] >= dnt_interest[1]:
+            if dnt_prop[dnt_interest[0]] > freq_interest:
                 temp_reg = "-"
             else:
                 temp_reg = "+"
+            if dnt_prop[dnt_interest[0]] == freq_interest:
+                temp_reg = "ok"
         seq = "".join(seq)
     dnt_prop_txt = ""
     dnt_prop = dinucleotide_calculator_bis(seq)
@@ -518,6 +557,15 @@ def nt_freq_calculator(seq, nt):
             count += seq.count(n)
         nt_prop = float(count) / len(seq)
     return nt_prop
+
+
+def rounder(num, digits, up=True):
+    import math
+    mul = 10**digits
+    if up:
+        return math.ceil(num * mul)/mul
+    else:
+        return math.floor(num*mul)/mul
 
 
 def exon_nt_sequence_generator(length, ctrl, nt_interest):
@@ -561,13 +609,21 @@ def exon_nt_sequence_generator(length, ctrl, nt_interest):
             print("Something went wrong ! ")
             exit(1)
         seq += str(codon)
-
     # enrichment of a nucleotide
     if nt_interest is not None:
         seq = list(seq)
         nt_prop = nt_freq_calculator("".join(seq), nt_interest[0])
 
         if nt_prop > nt_interest[1]:
+            freq_interest = rounder((((nt_interest[1] * 2 + (1. / len(seq))) / 2)) + float(np.random.normal(scale=1./30)), 4, True)
+        else:
+            freq_interest = rounder(((nt_interest[1] * 2 - (1. / len(seq))) / 2) + float(np.random.normal(scale=1./30)), 4, False)
+
+        if freq_interest > 1.:
+            freq_interest = 1
+        if freq_interest < 0:
+            freq_interest = 0
+        if nt_prop > freq_interest:
             reg = "-"
         else:
             reg = "+"
@@ -586,10 +642,12 @@ def exon_nt_sequence_generator(length, ctrl, nt_interest):
                 nt_chosen = get_cur_val(nt_dic, random.random())
                 seq[ind] = nt_chosen
             nt_prop = nt_freq_calculator("".join(seq), nt_interest[0])
-            if nt_prop >= nt_interest[1]:
+            if nt_prop > freq_interest:
                 temp_reg = "-"
             else:
                 temp_reg = "+"
+            if nt_prop == freq_interest:
+                temp_reg = "ok"
         seq = "".join(seq)
     nt_prop_txt = "A : " + str(float(seq.count("A")) / len(seq)) + " | C :" + str(float(seq.count("C")) / len(seq)) + " | "
     nt_prop_txt += "G : " + str(float(seq.count("G")) / len(seq)) + " | T :" + str(float(seq.count("G")) / len(seq))
