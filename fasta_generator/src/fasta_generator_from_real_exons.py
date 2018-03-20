@@ -4,58 +4,31 @@ import sys
 import os
 from dicitonary import *
 from sets import Set
+import numpy as np
 
 
 feature_dic = {
-    "Small": ["A", "C", "D", "G", "N", "P", "S", "T", "V"], "Tiny": ["A", "C", "G", "S", "T"],
-    "Aliphatic": ["A", "G", "I", "L", "V"], "Aliphatic_s": ["I", "L", "V"],
-    "side_chain_aliphatic_polar": ["C", "M", "S", "T"], "Aromatic": ["F", "W", "Y", "H"], "Aromatic_s": ["F", "W", "Y"],
-    "Aromatic_NP": ["F", "W"], "Sulfuric": ["C", "M"], "Hydroxylic": ["S", "T", "Y"], "Amidic": ["N", "Q"],
-    "Acidic_side_chain": ["D", "N", "E", "Q"], "Basic_amino_acid": ["H", "K", "R"],
-    "Hydrophobic": ["A", "C", "I", "L", "M", "F", "P", "W", "Y", "V"],
-    "Hydrophobic_NP": ["A", "G", "I", "L", "M", "F", "P", "W", "V"],
-    "Hydrophobic_side_chain": ["A", "I", "L", "M", "F", "W", "Y", "V"],
-    "Hydrophobic-Alkyl": ["A", "G", "I", "L", "M", "P", "V"],
-    "Hydrophobic-aromatic": ["F", "W"],
-    "Hydrophilic": ["E", "D", "H", "K", "N", "Q", "R", "S", "T"],
-    "Hydrophilic_polar": ["N", "C", "Q", "S", "T", "Y", "E", "D", "R", "H", "K"],
-    "Hydrophylic_side_chain_polar": ["N", "Q", "S", "T", "Y", "E", "D", "R", "H", "K"],
-    "Hydrophilic_neutral": ["N", "C", "Q", "S", "T", "Y"],
-    "Hydrophilic_side_chain_uncharged": ["N", "Q", "S", "T", "Y"],
-    "Hydrophilic_charged": ["E", "D", "R", "H", "K"],
-    "Hydrophilic_Acidic_negative_charged": ["D", "E"],
-    "Hydrophilic_Basic_positive_charged": ["R", "H", "K"],
-    "Hydrophilic_positively_charged": ["R", "K"],
-    "Neutral": ["A", "C", "F", "G", "I", "L", "M", "N", "P", "Q", "S", "T", "V", "W"],
-    "Neutral_s": ["A", "C", "N", "Q", "S", "T", "Y"],
+    "Small#1": ["A", "C", "D", "G", "N", "P", "S", "T", "V"],
+    "Small#2": ["A", "C", "D", "G", "N", "P", "S", "T"],
+    "Large" : ["F", "I", "K", "L", "M", "R", "W", "Y"],
+    "Disorder_promoting#1": ["A", "E", "G", "K", "P", "Q", "R", "S"],
+    "Order_promoting#1": ["C", "F", "I", "L", "N", "W", "V", "Y"],
+    "Disorder_promoting#2": ["A", "E", "G", "K", "P", "Q", "S"],
+    "Order_promoting#2": ["C", "F", "H", "I", "L", "M", "N", "W", "V", "Y"],
+    "Polar_uncharged#1": ["C", "N", "Q", "S", "T", "Y"],
+    "Polar_uncharged#2": ["N", "Q", "S", "T", "Y"],
     "Charged": ["R", "H", "K", "D", "E"],
-    "Positively_charged": ["R", "H", "K"],
-    "Positively_charged_s": ["R", "K"],
+    "Hydrophilic#1": ["D", "E", "K", "N", "Q", "R"],
+    "Hydrophobic#1": ["A", "C", "F", "I", "L", "M", "V"],
+    "Hydrophilic#2": ["D", "E", "H", "K", "N", "Q", "R", "S", "T"],
+    "Hydrophobic#2": ["A", "C", "F", "I", "L", "M", "P", "V", "W", "Y"],
+    "Hydroxylic": ["S", "T", "Y"],
     "Negatively_charged": ["D", "E"],
-    "Non_polar_1": ["G", "A", "V", "L", "I", "M", "P", "F", "W"],
-    "Non_polar_2": ["A", "I", "L", "M", "P", "V", "F", "W"],
-    "Non_polar_1s": ["G", "A", "V", "L", "I", "M"],
-    "Non_polar_alkyl": ["G", "A", "V", "L", "I", "M", "P"],
-    "Non_polar_aromatic": ["F", "W"],
-    "Polar": ["Y", "S", "T", "C", "Q", "N", "E", "D", "K", "H", "R"],
-    "Polar_uncharged1": ["G", "S", "T", "C", "Y", "N", "Q"],
-    "Polar_uncharged2": ["S", "T", "Q", "N", "C", "P"],
-    "Polar_uncharged3": ["Y", "S", "T", "C", "Q", "N"],
-    "Polar_uncharged4": ["S", "T", "N", "Q"],
-    "Polar_charged": ["E", "D", "R", "H", "K"],
-    "Polar_positively_charged": ["R", "H", "K"],
-    "Polar_positively_charged_s": ["R", "K"],
-    "Polar_negatively_charged": ["D", "E"],
-    "Low_complexity": ["S", "P", "G", "R", "K", "Y"],
-    "Disorder_promoting": ["A", "R", "G", "Q", "S", "E", "K", "P"],
-    "Disorder_promoting_s": ["S", "P", "G", "R"],
-    "Order_promoting": ["W", "Y", "F", "I", "L", "V", "C", "N"],
-    "Thiolation": ["K", "Q", "E"],
-    "EPRS": ["P", "E"],
-    "PEVK": ["P", "E", "V", "K"],
-    "Serine": ["S"],
-    "Threonine": ["T"]
+    "Positively_charged": ["R", "H", "K"],
 }
+
+
+
 
 
 def read_CCE_sequence(ctrl):
@@ -396,6 +369,15 @@ def header_generator_2_ft(length, ft1, ft2, feature_interest, num_seq):
     return header
 
 
+def rounder(num, digits, up=True):
+    import math
+    mul = 10**digits
+    if up:
+        return math.ceil(num * mul)/mul
+    else:
+        return math.floor(num*mul)/mul
+
+
 def exon_sequence_generator(size_int, list_seq, ctrl, feature_interest, prop_feature):
     """
     Generation of fasta sequences having the a feature frequency near of  prop_feature.
@@ -434,14 +416,24 @@ def exon_sequence_generator(size_int, list_seq, ctrl, feature_interest, prop_fea
 
     # print(my_seq)
     cur_prop = feature_frequency_calculator(my_seq, feature_interest)
-
+    lenseq = float(len(my_seq))
     if cur_prop > prop_feature:
+        freq_interest = rounder(((prop_feature * 2 + (6. / lenseq )) / 2) + float(np.random.randn() / 30),
+                                4, True)
+    else:
+        freq_interest = rounder(((prop_feature * 2 - (6. / lenseq)) / 2) + float(np.random.randn() / 30) ,
+                                4, False)
+    if freq_interest > 1.:
+        freq_interest = 1
+    if freq_interest < 0:
+        freq_interest = 0
+    if cur_prop > freq_interest:
         reg = "-"
     else:
         reg = "+"
     temp_reg = reg
     while temp_reg == reg:
-        # print(str(cur_prop) + " - " + str(feature_interest) + " - " + str(reg) + " - " + str(temp_reg))
+        print(str(cur_prop) + " - " + str(feature_interest) + " - " + str(reg) + " - " + str(temp_reg))
         if reg == "+":
             val = random.randint(0, len(my_seq) - 1)
             if codon2aminoAcid[my_seq[val]] not in feature_dic[feature_interest]:
@@ -468,15 +460,17 @@ def exon_sequence_generator(size_int, list_seq, ctrl, feature_interest, prop_fea
 
         cur_prop = feature_frequency_calculator(my_seq, feature_interest)
         if cur_prop > prop_feature:
-            reg = "-"
+            temp_reg = "-"
         else:
-            reg = "+"
+            temp_reg = "+"
+        if cur_prop == prop_feature:
+            temp_reg = "ok"
 
     rseq = "".join(my_seq)
     fseq = ""
     i = 0
     while i < len(rseq):
-        fseq += rseq[i:i + 70] + "\r"
+        fseq += rseq[i:i + 70] + "\n"
         i += 70
 
     ap = round(float(rseq.count("A")) / len(rseq), 2)
@@ -641,11 +635,10 @@ def launcher():
         args.filename = args.ctrl + "_" + args.feature + "_" + args.prop
 
     try:
-        args.prop = int(args.prop)
-        if 0 < args.prop > 100:
+        args.prop = float(args.prop)
+        if 0 > args.prop or args.prop > 1:
             print("ERROR : wrong probability value")
             exit(1)
-        args.prop = float(args.prop) / 100
     except ValueError:
         try:
             args.prop = args.prop.split(",")
