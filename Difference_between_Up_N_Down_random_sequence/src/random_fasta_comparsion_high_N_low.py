@@ -1,12 +1,12 @@
-#!/bin/bash
+#!/usr/bin/python3
 
 
 """
 Description:
 
 The goal of this script is to:
- 1. Create a lot of random fasta enriched in a particular unit (*nucleotide*, *di-nucleotide* or *feature*) and calculates the mean frequency of this unit in the fasta file
- 2. Create a lot of random fasta impoverished in **the same unit** (*nucleotide*, *di-nucleotide* or *feature*) and calculates the mean frequency of this unit in the fasta file
+    1. Create a lot of random fasta enriched in a particular unit (*nucleotide*, *di-nucleotide* or *feature*) and calculates the mean frequency of this unit in the fasta file
+    2. Create a lot of random fasta impoverished in **the same unit** (*nucleotide*, *di-nucleotide* or *feature*) and calculates the mean frequency of this unit in the fasta file
 
 And then compare their frequency for this unit for each couple of random fasta enriched and impoverished \
 (for this unit). To compare their frequency, the relative frequency is computed
@@ -15,7 +15,7 @@ The relative frequency is calculated as follow:
 
 .. math::
 
-  F_{relative} = frac{F_{interest} - F_{control}}{F_{control}}
+  F_{relative} = \frac{F_{interest} - F_{control}}{F_{control}}
 
 Where:
   * :math:`F_{relative}` is the relative frequency of a unit :math:`F`
@@ -251,12 +251,15 @@ def get_relative_freq_values(list_high, list_low):
 
     :param list_high: (list of float) list of mean frequencies in a particular unit in a list of fasta file enriched \
     for this unit
-    :param list_low:(list of float) list of mean frequencies in a particular unit in a list of fasta file impoverished \
+    :param list_low: (list of float) list of mean frequencies in a particular unit in a list of fasta file impoverished \
     for this unit
-    :return: (list of float) relative frequencies for each value of list_high and list low. i.e
-    .. math::
+    :return: (list of float) relative frequencies for each value of list_high and list low. i.e \
 
-        relative_freq[i] = frac{list_high[i] - list_low[i]}{list_low[i]}
+    .. code-block:: bash
+
+        relative\_freq[i] = \frac{list_high[i] - list_low[i]}{list_low[i]}
+
+
     """
     relative_freq = []
     for i in range(len(list_high)):
@@ -274,9 +277,9 @@ def write_tsv_file(unit_type, unit, freq_high, freq_low, list_high_freq, list_lo
     interest
         :param freq_low: (float) the frequency of ``unit`` for the fasta file having a low content of the unit of \
     interest
-    :param list_high_freq:(list of float) list of mean frequencies in a particular unit in a list of fasta file enriched \
+    :param list_high_freq: (list of float) list of mean frequencies in a particular unit in a list of fasta file enriched \
     for this unit
-    :param list_low_freq:(list of float) list of mean frequencies in a particular unit in a list of fasta file impoverished \
+    :param list_low_freq: (list of float) list of mean frequencies in a particular unit in a list of fasta file impoverished \
     for this unit
     :param iteration: (int) the number of fasta files we want to create
     :param output: (string) path where the fasta_file will be created
