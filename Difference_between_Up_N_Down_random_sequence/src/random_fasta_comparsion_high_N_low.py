@@ -299,7 +299,7 @@ def write_tsv_file(unit_type, unit, freq_high, freq_low, list_high_freq, list_lo
 
     mean_low = np.mean(list_low_freq)
     std_low = np.std(list_low_freq)
-
+    unit = unit.replace("_", "-")
     with open(output + unit_type + "_" + unit + "_frequency_comparison_between_" + str(iteration) + "_" + fname + "_fasta_file-high:"+str(freq_high) + "_low:" + str(freq_low) + ".tsv", "w") as outfile:
         outfile.write("frequency_fasta" + fname + "_" + str(unit) + ":" + str(freq_high) + "\t")
         outfile.write("frequency_fasta" + fname + "_" + str(unit) + ":" + str(freq_low) + "\t")
