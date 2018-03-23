@@ -418,10 +418,10 @@ def exon_sequence_generator(size_int, list_seq, ctrl, feature_interest, prop_fea
     cur_prop = feature_frequency_calculator(my_seq, feature_interest)
     lenseq = float(len(my_seq))
     if cur_prop > prop_feature:
-        freq_interest = rounder(((prop_feature * 2 + (6. / lenseq )) / 2) + float(np.random.randn() / 30),
+        freq_interest = rounder(((prop_feature * 2 + (1. / lenseq )) / 2) + float(np.random.normal(scale=1. / 30)),
                                 4, True)
     else:
-        freq_interest = rounder(((prop_feature * 2 - (6. / lenseq)) / 2) + float(np.random.randn() / 30) ,
+        freq_interest = rounder(((prop_feature * 2 - (1. / lenseq)) / 2) + float(np.random.normal(scale=1. / 30)),
                                 4, False)
     if freq_interest > 1.:
         freq_interest = 1
@@ -433,7 +433,7 @@ def exon_sequence_generator(size_int, list_seq, ctrl, feature_interest, prop_fea
         reg = "+"
     temp_reg = reg
     while temp_reg == reg:
-        print(str(cur_prop) + " - " + str(feature_interest) + " - " + str(reg) + " - " + str(temp_reg))
+        #print(str(cur_prop) + " - " + str(feature_interest) + " - " + str(reg) + " - " + str(temp_reg))
         if reg == "+":
             val = random.randint(0, len(my_seq) - 1)
             if codon2aminoAcid[my_seq[val]] not in feature_dic[feature_interest]:
@@ -459,11 +459,11 @@ def exon_sequence_generator(size_int, list_seq, ctrl, feature_interest, prop_fea
             my_seq[val] = codon_chosen
 
         cur_prop = feature_frequency_calculator(my_seq, feature_interest)
-        if cur_prop > prop_feature:
+        if cur_prop > freq_interest:
             temp_reg = "-"
         else:
             temp_reg = "+"
-        if cur_prop == prop_feature:
+        if cur_prop == freq_interest:
             temp_reg = "ok"
 
     rseq = "".join(my_seq)
