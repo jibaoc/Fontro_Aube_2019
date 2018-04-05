@@ -20,23 +20,24 @@ def debug_msg(msg):
 
 
 feature_dic = {
-    "Small#1": ["A", "C", "D", "G", "N", "P", "S", "T", "V"],
+    "Very-small": ["A", "C", "G", "S"],
     "Small#2": ["A", "C", "D", "G", "N", "P", "S", "T"],
     "Large" : ["F", "I", "K", "L", "M", "R", "W", "Y"],
-    "Disorder_promoting#1": ["A", "E", "G", "K", "P", "Q", "R", "S"],
-    "Order_promoting#1": ["C", "F", "I", "L", "N", "W", "V", "Y"],
-    "Disorder_promoting#2": ["A", "E", "G", "K", "P", "Q", "S"],
-    "Order_promoting#2": ["C", "F", "H", "I", "L", "M", "N", "W", "V", "Y"],
-    "Polar_uncharged#1": ["C", "N", "Q", "S", "T", "Y"],
-    "Polar_uncharged#2": ["N", "Q", "S", "T", "Y"],
-    "Charged": ["R", "H", "K", "D", "E"],
+    "Disorder-promoting#1": ["A", "E", "G", "K", "P", "Q", "R", "S"],
+    "Order-promoting#1": ["C", "F", "I", "L", "N", "W", "V", "Y"],
+    "Disorder-promoting#2": ["A", "E", "G", "K", "P", "Q", "S"],
+    "Order-promoting#2": ["C", "F", "H", "I", "L", "M", "N", "W", "V", "Y"],
+    "Polar-uncharged#1": ["C", "N", "Q", "S", "T", "Y"],
+    "Polar-uncharged#2": ["N", "Q", "S", "T", "Y"],
+    "Charged#1": ["R", "H", "K", "D", "E"],
+    "Charged#2": ["R", "K", "D", "E"],
     "Hydrophilic#1": ["D", "E", "K", "N", "Q", "R"],
     "Hydrophobic#1": ["A", "C", "F", "I", "L", "M", "V"],
-    "Hydrophilic#2": ["D", "E", "H", "K", "N", "Q", "R", "S", "T"],
-    "Hydrophobic#2": ["A", "C", "F", "I", "L", "M", "P", "V", "W", "Y"],
+    "Neutral": ["G", "H", "P", "S", "T", "Y"],
     "Hydroxylic": ["S", "T", "Y"],
-    "Negatively_charged": ["D", "E"],
-    "Positively_charged": ["R", "H", "K"],
+    "Negatively-charged": ["D", "E"],
+    "Positively-charged#1": ["R", "H", "K"],
+    "Positively-charged#2": ["R", "K"]
 }
 
 
