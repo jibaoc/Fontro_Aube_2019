@@ -392,85 +392,15 @@ def get_content_group_enrichment2(control_frequencies, interest_frequencies, int
 
 def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies, codon_frequencies_5p, codon_frequencies_3p, dic_p_val_codon,
                                            control_frequencies_aa, aa_frequencies, aa_frequencies_5p, aa_frequencies_3p, dic_p_val_aa,
-                                           control_schain_frequencies, schain_frequency, schain_frequency_5p, schain_frequency_3p, dic_p_val_schain,
-                                           control_hydro_frequencies, hydro_frequency, hydro_frequency_5p, hydro_frequency_3p, dic_p_val_hydro,
-                                           control_charge_frequencies, charge_frequency, charge_frequency_5p, charge_frequency_3p, dic_p_val_charge,
-                                           control_polarity_frequencies, polarity_frequency, polarity_frequency_5p, polarity_frequency_3p, dic_p_val_polarity,
-                                           control_misc_frequencies, misc_frequency, misc_frequency_5p, misc_frequency_3p, dic_p_val_misc,
-                                           control_chimical_frequencies, chimical_frequency, chimical_frequency_5p, chimical_frequency_3p, dic_p_val_chimical,
-                                           control_structural_frequencies, structural_frequency, structural_frequency_5p, structural_frequency_3p, dic_p_val_structural,
+                                           control_ft_frequencies, ft_frequency, ft_frequency_5p, ft_frequency_3p, dic_p_val_ft,
+                                           control_ftr_frequencies, ftr_frequency, ftr_frequency_5p, ftr_frequency_3p, dic_p_val_ftr,
+                                           control_ftor_frequencies, ftor_frequency, ftor_frequency_5p, ftor_frequency_3p, dic_p_val_ftor,
                                            control_nucleic_acid_frequencies, nucleic_acid_frequency, nucleic_acid_frequency_5p, nucleic_acid_frequency_3p, dic_p_val_nt,
                                            control_ntp_frequencies, ntp_frequency, ntp_frequency_5p, ntp_frequency_3p, dic_p_val_ntp,
                                            control_dnt_frequencies, dnt_frequency, dnt_frequency_5p, dnt_frequency_3p, dic_p_val_dnt,
                                            control_hexa_frequencies, hexa_frequency, hexa_frequency_5p, hexa_frequency_3p, dic_p_val_hexa,
                                            control_diaa_frequencies, diaa_frequency, diaa_frequency_5p, diaa_frequency_3p, dic_p_val_diaa,
                                            output_folder, set_number):
-    """
-    :param control_frequencies_codon:  (dictionary of floats) a dictionary containing the codon frequencies of the
-    control sets
-    :param interest_frequencies_codon:  (dictionary of floats) a dictionary frequency of each codon in the user set of
-    exons
-    :param dic_p_val_codon: (dictionary of floats) a dictionary containing the p_values indicating the significance of
-    the enrichment for each codon
-    :param control_frequencies_aa: (dictionary of floats) a dictionary containing the amino acid frequencies of the
-    control
-    sets
-    :param interest_frequencies_aa: (dictionary of floats) a dictionary frequency of each amino acid in the user set of
-    exons
-    :param dic_p_val_aa: (dictionary of floats) a dictionary containing the p_values indicating the significance of
-    the enrichment for each amino acid
-    :param control_schain_frequencies: (dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by their side chain properties) of the control sets
-    :param schain_frequency:(dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by their side chain properties) in the user set of exons
-    :param dic_p_val_schain:(dictionary of floats) a dictionary containing the p_values indicating the significance of
-    the enrichment for each sets of amino acid (grouped by their side chain properties)
-    :param control_hydro_frequencies:(dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by their hydrophilic/phobic properties) of the control sets
-    :param hydro_frequency:(dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by their hydrophilic/phobic properties) in the user set of exons
-    :param dic_p_val_hydro:(dictionary of floats) a dictionary containing the p_values indicating the significance of
-    the enrichment for each sets of amino acid (grouped by their hydrophilic/phobic properties)
-    :param control_charge_frequencies:(dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by their charge properties) of the control sets
-    :param charge_frequency:(dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by their charge properties) in the user set of exons
-    :param dic_p_val_charge:(dictionary of floats) a dictionary containing the p_values indicating the significance of
-    the enrichment for each sets of amino acid (grouped by their charge properties)
-    :param control_polarity_frequencies:(dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by their polarity properties) of the control sets
-    :param polarity_frequency: (dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by their polarity properties) in the user set of exons
-    :param dic_p_val_polarity:(dictionary of floats) a dictionary containing the p_values indicating the significance of
-    the enrichment for each sets of amino acid (grouped by their polarity properties)
-    :param control_misc_frequencies:(dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by miscellaneous properties) of the control sets
-    :param misc_frequency:(dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by miscellaneous properties) in the user set of exons
-    :param dic_p_val_misc:(dictionary of floats) a dictionary containing the p_values indicating the significance of
-    the enrichment for each sets of amino acid (grouped by miscellaneous properties)
-    :param control_chimical_frequencies:(dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by their chemical properties) of the control sets
-    :param chimical_frequency:(dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by their chemical properties) in the user set of exons
-    :param dic_p_val_chimical: (dictionary of floats) a dictionary containing the p_values indicating the significance of
-    the enrichment for each sets of amino acid (grouped by their chemical properties)
-    :param control_structural_frequencies: (dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by their structural properties) of the control sets
-    :param structural_frequency:(dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by their chemical properties) in the user set of exons
-    :param dic_p_val_structural:(dictionary of floats) a dictionary containing the frequencies of different
-    sets of amino acid (grouped by their structural properties) in the user set of exons
-    :param control_nucleic_acid_frequencies:(dictionary of floats) a dictionary containing the  nucleotides frequencies
-     of exons of the control sets
-    :param nucleic_acid_frequency:(dictionary of floats) a dictionary containing the  nucleotides frequencies
-     of exons of the user set of exons
-    :param dic_p_val_nt:  (dictionary of floats) a dictionary containing the p_values indicating the significance of
-    the enrichment for each nucleotides of the user set of exons
-    :param output_folder: (string) the folder where the report enrichment_report.xlsx will be created
-    :param set_number: (int) the number of control set that have been created
-    :return:
-    """
     workbook = xlsxwriter.Workbook(output_folder + "enrichment_report.xlsx")
     # setting the formats
     header_format = workbook.add_format({'bg_color': '#00DCFF', 'align': 'center', 'valign': 'vcenter', 'border': True})
@@ -481,21 +411,48 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
                                                                     set_number)
     aa_content, dic_padjust_aa = get_content_amino_acid_enrichment(control_frequencies_aa, aa_frequencies, aa_frequencies_5p, aa_frequencies_3p,
                                                                    dic_p_val_aa, set_number)
-    schain_content, dic_padjust_schain = get_content_group_enrichment2(control_schain_frequencies, schain_frequency, schain_frequency_5p, schain_frequency_3p, dic_p_val_schain,
-                                                                      set_number, "side_chain_nature", schain2aa)
-    hydro_content, dic_padjust_hydro = get_content_group_enrichment2(control_hydro_frequencies, hydro_frequency, hydro_frequency_5p, hydro_frequency_3p, dic_p_val_hydro,
-                                                                      set_number, "hydric_relation", hydro_info2aa)
-    charge_content, dic_padjust_charge = get_content_group_enrichment2(control_charge_frequencies, charge_frequency, charge_frequency_5p, charge_frequency_3p, dic_p_val_charge,
-                                                                      set_number, "charge_group", charge_info2aa)
-    polarity_content, dic_padjust_polarity = get_content_group_enrichment2(control_polarity_frequencies, polarity_frequency, polarity_frequency_5p, polarity_frequency_3p, dic_p_val_polarity,
-                                                                      set_number, "polarity_group", polarity_info2aa)
-    misc_content, dic_padjust_misc = get_content_group_enrichment2(control_misc_frequencies, misc_frequency, misc_frequency_5p, misc_frequency_3p, dic_p_val_misc,
-                                                                      set_number, "misc_group", misc2aa)
 
-    chimical_content, dic_padjust_chimical = get_content_group_enrichment(control_chimical_frequencies, chimical_frequency, chimical_frequency_5p, chimical_frequency_3p, dic_p_val_chimical,
-                                                                      set_number, "chimical_group")
-    structural_content, dic_padjust_structural = get_content_group_enrichment(control_structural_frequencies, structural_frequency, structural_frequency_5p, structural_frequency_3p, dic_p_val_structural,
-                                                                      set_number, "structural_group")
+    ft_list = ["Very-small", "Small#2", "Large", "Disorder-promoting#1", "Order-promoting#1", "Disorder-promoting#2",
+               "Order-promoting#2", "Polar-uncharged#1", "Polar-uncharged#2", "Charged#1", "Charged#2", "Hydrophilic#1",
+               "Hydrophobic#1", "Neutral", "Hydroxylic", "Negatively-charged", "Positively-charged#1",
+               "Positively-charged#2"]
+    ft_content, dic_padjust_ft = get_content_group_enrichment(control_ft_frequencies,
+                                                              ft_frequency,
+                                                              ft_frequency_5p,
+                                                              ft_frequency_3p,
+                                                              dic_p_val_ft,
+                                                              set_number, "feature", ft_list)
+
+    ftr_list = ["Very-small/(Very-small+Large)", "Large/(Very-small+Large)", "Small#2/(Small#2+Large)",
+                "Large/(Small#2+Large)", "Disorder#1/(Disorder#1+Order#1)", "Order#1/(Disorder#1+Order#1)",
+                "Disorder#2/(Disorder#2+Order#2)", "Order#2/(Disorder#2+Order#2)", "Uncharged#1/(Uncharged#1+Charged#1)",
+                "Charged#1/(Uncharged#1+Charged#1)", "Uncharged#2/(Uncharged#2+Charged#1)",
+                "Charged#1/(Uncharged#2+Charged#1)", "Uncharged#2/(Uncharged#2+Charged#2)",
+                "Charged#2/(Uncharged#2+Charged#2)", "Neutral/(Neutral+Charged#2)", "Charged#2/(Neutral+Charged#2)",
+                "Hydrophilic#1/(Hydrophilic#1+Hydrophobic#1)", "Hydrophobic#1/(Hydrophilic#1+Hydrophobic#1)",
+                "Hydroxylic/(Hydroxylic+Negatively-charged)", "Negatively-charged/(Hydroxylic+Negatively-charged)",
+                "Negatively-charged/(Positively-charged#1+Negatively-charged)",
+                "Positively-charged#1/(Positively-charged#1+Negatively-charged)",
+                "Negatively-charged/(Positively-charged#2+Negatively-charged)",
+                "Positively-charged#2/(Positively-charged#2+Negatively-charged)"]
+    ftr_content, dic_padjust_ftr = get_content_group_enrichment(control_ftr_frequencies,
+                                                              ftr_frequency,
+                                                              ftr_frequency_5p,
+                                                              ftr_frequency_3p,
+                                                              dic_p_val_ftr,
+                                                              set_number, "feature_ratio", ftr_list)
+
+    ftor_list = ["Very-small/Large", "Small#2/Large", "Disorder#1/Order#1", "Disorder#2/Order#2", "Polar-uncharged#1/Charged#1",
+                 "Polar-uncharged#2/Charged#1", "Polar-uncharged#1/Charged#2", "Polar-uncharged#2/Charged#2",
+                 "Neutral/Charged#2", "Hydrophilic#1/Hydrophobic#1", "Hydroxylic/Negatively-charged",
+                 "Negatively-charged/Positively-charged#1", "Negatively-charged/Positively-charged#2"]
+
+    ftor_content, dic_padjust_ftor = get_content_group_enrichment(control_ftor_frequencies,
+                                                              ftor_frequency,
+                                                              ftor_frequency_5p,
+                                                              ftor_frequency_3p,
+                                                              dic_p_val_ftor,
+                                                              set_number, "opposed_feature_ratio", ftor_list)
 
     nt_list = ["A", "G", "C", "T", " ", "Y", "R", " ", "S", "W", " ", "K", "M", " ", "D", "C", " ", "V", "T", " ", "H", "G", " ",
                "B", "A"]
@@ -552,13 +509,9 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
     # creating the sheets...
     codon_sheet = workbook.add_worksheet("codon")
     aa_sheet = workbook.add_worksheet("amino_acid")
-    schain_sheet = workbook.add_worksheet("side_chain")
-    hydro_sheet = workbook.add_worksheet("hydric_relation")
-    charge_sheet = workbook.add_worksheet("charge_info")
-    polarity_sheet = workbook.add_worksheet("polarity_info")
-    misc_sheet = workbook.add_worksheet("misc_info")
-    chimical_sheet = workbook.add_worksheet("chimical_info")
-    structural_sheet = workbook.add_worksheet("structural_info")
+    ft_sheet = workbook.add_worksheet("feature")
+    ftr_sheet = workbook.add_worksheet("feature_ratio")
+    ftor = workbook.add_worksheet("opposed_feature_ratio")
     nt_sheet = workbook.add_worksheet("nt_info")
     ntp_sheet = workbook.add_worksheet("nt_pos_info")
     dnt_sheet = workbook.add_worksheet("dnt_info")
@@ -568,13 +521,9 @@ def writing_enrichment_report_file(control_frequencies_codon, codon_frequencies,
     # filling the sheets...
     sheet_filler(codon_content, codon_sheet, header_format, normal_format)
     sheet_filler(aa_content, aa_sheet, header_format, normal_format)
-    sheet_filler(schain_content, schain_sheet, header_format, normal_format)
-    sheet_filler(hydro_content, hydro_sheet, header_format, normal_format)
-    sheet_filler(charge_content, charge_sheet, header_format, normal_format)
-    sheet_filler(polarity_content, polarity_sheet, header_format, normal_format)
-    sheet_filler(misc_content, misc_sheet, header_format, normal_format)
-    sheet_filler(chimical_content, chimical_sheet, header_format, normal_format)
-    sheet_filler(structural_content, structural_sheet, header_format, normal_format)
+    sheet_filler(ft_content, ft_sheet, header_format, normal_format)
+    sheet_filler(ftr_content, ftr_sheet, header_format, normal_format)
+    sheet_filler(ftor_content, ftor, header_format, normal_format)
     sheet_filler(nt_content, nt_sheet, header_format, normal_format)
     sheet_filler(ntp_content, ntp_sheet, header_format, normal_format)
     sheet_filler(dnt_content, dnt_sheet, header_format, normal_format)
