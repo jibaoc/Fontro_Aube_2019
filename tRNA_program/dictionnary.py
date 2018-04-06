@@ -53,6 +53,32 @@ amino_acid2codon_list = {
     "K": ["AAA", "AAG"], "D": ["GAT", "GAC"], "E": ["GAA", "GAG"], "C": ["TGT", "TGC"], "W": ["TGG"],
     "R": ["CGT", "CGC", "CGA", "CGG", "AGA", "AGG"], "G": ["GGT", "GGC", "GGA", "GGG"]}
 
+
+
+# feature dictionaries
+# 12/03/2018
+feature_dic = {
+    "Very-small": ["A", "C", "G", "S"],
+    "Small#2": ["A", "C", "D", "G", "N", "P", "S", "T"],
+    "Large" : ["F", "I", "K", "L", "M", "R", "W", "Y"],
+    "Disorder-promoting#1": ["A", "E", "G", "K", "P", "Q", "R", "S"],
+    "Order-promoting#1": ["C", "F", "I", "L", "N", "W", "V", "Y"],
+    "Disorder-promoting#2": ["A", "E", "G", "K", "P", "Q", "S"],
+    "Order-promoting#2": ["C", "F", "H", "I", "L", "M", "N", "W", "V", "Y"],
+    "Polar-uncharged#1": ["C", "N", "Q", "S", "T", "Y"],
+    "Polar-uncharged#2": ["N", "Q", "S", "T", "Y"],
+    "Charged#1": ["R", "H", "K", "D", "E"],
+    "Charged#2": ["R", "K", "D", "E"],
+    "Hydrophilic#1": ["D", "E", "K", "N", "Q", "R"],
+    "Hydrophobic#1": ["A", "C", "F", "I", "L", "M", "V"],
+    "Neutral": ["G", "H", "P", "S", "T", "Y"],
+    "Hydroxylic": ["S", "T", "Y"],
+    "Negatively-charged": ["D", "E"],
+    "Positively-charged#1": ["R", "H", "K"],
+    "Positively-charged#2": ["R", "K"]
+}
+
+
 # nature2amino_acid
 # link each defined nature to there corresponding amino acid
 
