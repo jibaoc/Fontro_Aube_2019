@@ -30,6 +30,10 @@ def main(trna_launcher, folder_bed, fasterdb_bed, output):
 
         cmd = "python3 %s/middle_bed_enrichment.py  --output %s --name %s --clip_bed %s  --fasterdb_bed %s \
         --trna_launcher %s" % (cur_folder, output_folder, name_file, my_bed, fasterdb_bed, trna_launcher)
+        if "SRSF3" in my_bed:
+            cmd += " --overlap 2"
+        if "SRSF1" in my_bed:
+            cmd += " --overlap 5"
         print(cmd)
         subprocess.check_call(cmd, shell=True, stderr=subprocess.STDOUT)
 
