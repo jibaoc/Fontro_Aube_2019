@@ -82,7 +82,7 @@ def first_intersectbed(bed_clip, output):
 
 def select_inter(first_inter, output, col_number, overlap_number):
     """
-    Select line which have on column 7 a count greater than one
+    Select line which have on column ``col_number`` a count greater than ``overlap_number``
 
     :param bed_clip: (string) the bed file corresponding to the clip bed analysis
     :param output: (string) folder where the output file will be created
@@ -165,7 +165,7 @@ def intersect2input(intersect_bed, output):
 def main(output, clip_bed, fasterdb_bed, trna_launcher, exon_type, name_analysis, overlap):
     """
     Create a tRNA input_file by intersecting a bed composed of the exon found down-regulated by a splicing factor \
-    by the clip found within an exon for this splicing factor. Then an enrichment analysis is performed on \
+    by the clip found within an exon for this splicing factor. Then an  enrichment analysis is performed on \
      the exons in this intersection
 
     :param output: (string) path where the output will be created
