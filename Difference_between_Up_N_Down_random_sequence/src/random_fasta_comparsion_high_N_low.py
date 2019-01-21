@@ -255,7 +255,10 @@ def get_mean_frequency_of_multiple_fasta(type_unit, unit, freq, iteration, outpu
     files generated.
     """
     list_mean_fasta = []
-    ilist = []
+    ilist = [[]]
+    if iunit is not None and "," in iunit:
+        ilist = [[] for i in range(len(iunit.split(",")))]
+
     filename_fasta = "CCE_" + unit + "_" + str(freq)
     for i in range(iteration):
         sys.stdout.write("\rprogress: " + str(i + 1) + " / " + str(iteration))
@@ -268,7 +271,10 @@ def get_mean_frequency_of_multiple_fasta(type_unit, unit, freq, iteration, outpu
             fasta_generation_nt_dnt(unit, freq, filename_fasta, output, iscub)
         list_mean_fasta.append(get_mean_frequency_in_fasta_file(output + filename_fasta + ".fasta", type_unit, unit))
         if iunit_type is not None:
-            ilist.append(get_mean_frequency_in_fasta_file(output + filename_fasta + ".fasta", iunit_type, iunit))
+            iunit2 = iunit.split(",")
+            iunit_type2 = iunit_type.split(",")
+            for i in range(len(iunit2)):
+                ilist[i].append(get_mean_frequency_in_fasta_file(output + filename_fasta + ".fasta", iunit_type2[i], iunit2[i]))
     subprocess.check_call(["rm", output + filename_fasta + ".fasta"], stderr=subprocess.STDOUT)
     if iunit_type is None:
         return list_mean_fasta
@@ -313,9 +319,9 @@ def write_full_tsv_file(unit_type, unit, freq_high, freq_low, list_high_freq, li
     for this unit
     :param list_low_freq: (list of float) list of mean frequencies in a particular unit in a list of fasta file impoverished \
     for this unit
-    :param ilist_high_freq: (list of float) list of mean frequencies in a particular unit in a list of fasta file enriched \
+    :param ilist_high_freq: (list of list float) list of mean frequencies in particular unit(s) in a list of fasta file enriched \
     for another unit
-    :param ilist_low_freq: (list of float) list of mean frequencies in a particular unit in a list of fasta file impoverished \
+    :param ilist_low_freq: (list of float) list of mean frequencies in particular unit(s) in a list of fasta file impoverished \
     for another unit unit
     :param iteration: (int) the number of fasta files we want to create
     :param output: (string) path where the fasta_file will be created
@@ -330,46 +336,66 @@ def write_full_tsv_file(unit_type, unit, freq_high, freq_low, list_high_freq, li
         fname = "mutated"
     relative_freq = get_relative_freq_values(list_high_freq, list_low_freq)
     mean_rel_freq = np.mean(relative_freq)
-    sd_rel_freq = np.std(relative_freq, ddof=1)
+    std_rel_freq = np.std(relative_freq, ddof=1)
 
-    irelative_freq = get_relative_freq_values(ilist_high_freq, ilist_low_freq)
-    imean_rel_freq = np.mean(irelative_freq)
-    isd_rel_freq = np.std(irelative_freq, ddof=1)
+    irelative_freq = [get_relative_freq_values(ilist_high_freq[i], ilist_low_freq[i]) for i in range(len(ilist_high_freq))]
+    imean_rel_freq = [np.mean(irelative_freq[i]) for i in range(len(irelative_freq))]
+    istd_rel_freq = [np.std(irelative_freq[i], ddof=1) for i in range(len(irelative_freq))]
 
     mean_high = np.mean(list_high_freq)
     std_high = np.std(list_high_freq, ddof=1)
 
-    imean_high = np.mean(ilist_high_freq)
-    istd_high = np.std(ilist_high_freq, ddof=1)
+    imean_high = [np.mean(ilist_high_freq[i]) for i in range(len(ilist_high_freq))]
+    istd_high = [np.std(ilist_high_freq[i], ddof=1) for i in range(len(ilist_high_freq))]
 
 
     mean_low = np.mean(list_low_freq)
     std_low = np.std(list_low_freq, ddof=1)
 
-    imean_low = np.mean(ilist_low_freq)
-    istd_low = np.std(ilist_low_freq, ddof=1)
+    imean_low = [np.mean(ilist_low_freq[i]) for i in range(len(ilist_low_freq))]
+    istd_low = [np.std(ilist_low_freq[i], ddof=1) for i in range(len(ilist_low_freq))]
     unit = unit.replace("_", "-")
     iunit = iunit.replace("_", "-")
 
     #T-test calculation
     pvalue1 =  stretch_evalutator.r_ttest(list_high_freq, list_low_freq)
-    pvalue2 = stretch_evalutator.r_ttest(ilist_high_freq, ilist_low_freq)
+    pvalue2 = [stretch_evalutator.r_ttest(ilist_high_freq[i], ilist_low_freq[i]) for i in range(len(ilist_high_freq))]
+
+    full_high_freq = [list_high_freq] + ilist_high_freq
+    full_low_freq = [list_low_freq] + ilist_low_freq
+    full_relative_freq = [relative_freq] + irelative_freq
+    full_mean_high = [mean_high] + imean_high
+    full_mean_low = [mean_low] + imean_low
+    full_mean_rel = [mean_rel_freq] + imean_rel_freq
+    full_std_high = [std_high] + istd_high
+    full_std_low = [std_low] + istd_low
+    full_std_rel = [std_rel_freq] + istd_rel_freq
+    full_pval = [pvalue1] +  pvalue2
 
     with open(output + iunit_type + "_" + iunit + "_frequency_comparison_between_" + str(iteration) + "_" + fname + "_fasta_file-high_" + str(unit) + ":"+ str(freq_high) + "_low_" + str(unit) + ":" + str(freq_low) + ".tsv", "w") as outfile:
         outfile.write("frequency_fasta" + fname + "_" + str(unit) + ":" + str(freq_high) + "\t")
         outfile.write("frequency_fasta" + fname + "_" + str(unit) + ":" + str(freq_low) + "\t")
-        outfile.write("relative_frequency_" + str(unit) + "\t")
-        outfile.write("frequency_fasta" + fname + "_" + str(iunit) + "_in_" + str(unit) + ":" + str(freq_high) + "\t")
-        outfile.write("frequency_fasta" + fname + "_" + str(iunit) + "_in_" + str(unit) + ":" + str(freq_low) + "\t")
-        outfile.write("relative_frequency_" + str(unit) + "\n")
-        for i in range(len(list_high_freq)):
-            outfile.write(str(list_high_freq[i]) + "\t" + str(list_low_freq[i]) + "\t" + str(relative_freq[i]) + "\t" +
-                          str(ilist_high_freq[i]) + "\t" + str(ilist_low_freq[i]) + "\t" + str(irelative_freq[i]) +"\n")
-        outfile.write(str(mean_high) + "\t" + str(mean_low) + "\t" + str(mean_rel_freq) + "\t" +
-                      str(imean_high) + "\t" + str(imean_low) + "\t" + str(imean_rel_freq) + "\t" +"mean\n")
-        outfile.write(str(std_high) + "\t" + str(std_low) + "\t" + str(sd_rel_freq) + "\t" +
-                      str(istd_high) + "\t" + str(istd_low) + "\t" + str(isd_rel_freq) + "\t" + "std\n")
-        outfile.write(str(pvalue1) + "\t \t \t" + str(pvalue2) + "\t \t \tT-test pvalue")
+        outfile.write("relative_frequency_" + str(unit))
+        iunit2 = iunit.split(",")
+        for i in range(len(iunit2)):
+            outfile.write("\tfrequency_fasta" + fname + "_" + str(iunit2[i]) + "_in_" + str(unit) + ":" + str(freq_high))
+            outfile.write("\tfrequency_fasta" + fname + "_" + str(iunit2[i]) + "_in_" + str(unit) + ":" + str(freq_low))
+            outfile.write("\trelative_frequency_" + str(iunit2[i]))
+        outfile.write("\n")
+        for i in range(len(full_high_freq[0])):
+            for j in range(len(full_high_freq)):
+                outfile.write(str(full_high_freq[j][i]) + "\t" + str(full_low_freq[j][i]) + "\t" + str(full_relative_freq[j][i]) + "\t")
+            outfile.write("\n")
+        for i in range(len(full_mean_high)):
+            outfile.write(str(full_mean_high[i]) + "\t" + str(full_mean_low[i]) + "\t" + str(full_mean_rel[i]) + "\t")
+        outfile.write("Mean\n")
+        for i in range(len(full_std_high)):
+            outfile.write(str(full_std_high[i]) + "\t" + str(full_std_low[i]) + "\t" + str(full_std_rel[i]) + "\t")
+        outfile.write("Std\n")
+        for i in range(len(full_pval)):
+            outfile.write(str(full_pval[i]) + "\t\t\t")
+        outfile.write("T-test")
+
 
 
 def write_tsv_file(unit_type, unit, freq_high, freq_low, list_high_freq, list_low_freq, iteration, output, iscub):
