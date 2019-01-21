@@ -64,36 +64,38 @@ def remove_duplicate(middle_bed, output):
     return new_file
 
 
-def enrichment_analysis(input_file, output, exon_type, launcher_file, name_analysis, size_wanted):
+def first_intersectbed(bed_clip, output):
     """
-    Launch the enrichment analysis.
+    Make the intersection of a bed versus itself
 
-    :param input_file: (string) input file to launch the tRNA program
-    :param output:  (string) path where the result will be created
-    :param exon_type: (string) the type of control exon used
-    :param launcher_file: (string) location of the file that will launch the tRNA program
-    :param name_analysis: (string) project name
-    :param size_wanted: (int) the size of the new wanted interval (used to select control sequence with the same size)
-    :return:
+    :param bed_clip: (string) the bed file corresponding to the clip bed analysis
+    :param output: (string) folder where the output file will be created
+    :return: (string) the name of the intersect bed file.
     """
-    cmd1 = "python2 " + launcher_file + " \
-            --input " + input_file + " \
-            --exon_type " + exon_type + " \
-            --complete_exon False \
-            --duplication True \
-            --penalty_size 3 \
-            --size_control False \
-            --thread 2 \
-            --output " + output + " \
-            --enrichment True \
-            --set_number 10000 \
-            --alt_figure no \
-            --summary no \
-            --set_name \"" + str(name_analysis) + "\""
-    cmd1 = cmd1.replace("            ", "")
-    print(cmd1)
-    cmd1 = cmd1.split(" ")
-    subprocess.check_call(cmd1, stderr=subprocess.STDOUT)
+    outfile = output + "first_intersect.bed"
+    cmd = "intersectBed -a %s -b %s -wa -c > %s" % (bed_clip, bed_clip, outfile)
+    print(cmd)
+    subprocess.check_call(cmd, shell=True,
+                          stderr=subprocess.STDOUT)
+    return outfile
+
+
+def select_inter(first_inter, output, col_number, overlap_number):
+    """
+    Select line which have on column 7 a count greater than one
+
+    :param bed_clip: (string) the bed file corresponding to the clip bed analysis
+    :param output: (string) folder where the output file will be created
+    :param col_number: (int) the column used to filter the data
+    :param overlap_number: (int) the number of sequences that must overlap
+    :return: (string) the name of the intersect bed file.
+    """
+    outfile = output + os.path.basename(first_inter).replace(".bed", "_good.bed")
+    cmd = "awk '{if ($%s >= %s) print $0}' %s | cut -f1-6 > %s" % (col_number, overlap_number, first_inter, outfile)
+    print(cmd)
+    subprocess.check_call(cmd, shell=True,
+                          stderr=subprocess.STDOUT)
+    return outfile
 
 
 def intersectbed(bed_clip, fasterdb_bed, output):
@@ -105,8 +107,8 @@ def intersectbed(bed_clip, fasterdb_bed, output):
     :param output: (string) folder where the output file will be created
     :return: (string) the name of the intersect bed file.
     """
-    outfile = output + "intersect.bed"
-    cmd = "intersectBed -a %s -b %s -wa -u -f 1 > %s" % (bed_clip, fasterdb_bed, outfile)
+    outfile = output + "final_intersect.bed"
+    cmd = "intersectBed -a %s -b %s -wa -c -F 1 > %s" % (fasterdb_bed, bed_clip, outfile)
     print(cmd)
     subprocess.check_call(cmd, shell=True,
                           stderr=subprocess.STDOUT)
@@ -143,8 +145,24 @@ def merge_bed(bed_file, output):
     return new_file
 
 
+def intersect2input(intersect_bed, output):
+    """
+    Transform a bed file into an
+    :param intersect_bed: (string) a bed file that just have been intersected
+    :param output: (string) path where the tRNA input will bed created
+    :return: (string) the name of the tRNA input
+    """
+    name_input = output + "input_file.txt"
+    with open(intersect_bed, "r") as bedfile:
+        with open(name_input, "w") as outfile:
+            for line in bedfile:
+                line = line.replace("\n", "").split("\t")
+                new_line = [line[3], line[0], str(int(line[1])), line[2]]
+                outfile.write("\t".join(new_line) + "\n")
+    return name_input
 
-def main(output, clip_bed, fasterdb_bed, trna_launcher, exon_type, name_analysis, wanted_size):
+
+def main(output, clip_bed, fasterdb_bed, trna_launcher, exon_type, name_analysis, overlap):
     """
     Create a tRNA input_file by intersecting a bed composed of the exon found down-regulated by a splicing factor \
     by the clip found within an exon for this splicing factor. Then an enrichment analysis is performed on \
@@ -156,20 +174,24 @@ def main(output, clip_bed, fasterdb_bed, trna_launcher, exon_type, name_analysis
     :param trna_launcher: (string) path to the tRNA launcher
     :param exon_type: (string) the control exon type used for the enrichment
     :param name_analysis: (string) the name of the analysis
-    :param wanted_size: (string) the wanted size
+    :param overlap: (int) the number of sequences that must overlap
     """
     sorted_bed = bed_sort(clip_bed, output)
     adapted_clip = enrichment_of_exon_fixating_SF.clip_bed_adapter(sorted_bed, output)
-    bed_intersect = intersectbed(adapted_clip, fasterdb_bed, output)
-    middle_bed = get_middle_bed(bed_intersect, output, wanted_size)
-    sorted_bed = bed_sort(middle_bed, output)
-    merged_bed = merge_bed(sorted_bed, output)
-    nodup_bed = remove_duplicate(merged_bed, output)  # remove potential feature with the same coordinates on different strand
-    final_trna_input = enrichment_of_exon_fixating_SF.intersect2input(nodup_bed, output)
+    first_inter = first_intersectbed(adapted_clip, output)
+    good_inter = select_inter(first_inter, output, 7, overlap)
+    bed_intersect = intersectbed(good_inter, fasterdb_bed, output)
+    good_intersection = select_inter(bed_intersect, output, 8, overlap)
+    final_trna_input = intersect2input(good_intersection, output)
+    # middle_bed = get_middle_bed(bed_intersect, output, wanted_size)
+    # sorted_bed = bed_sort(middle_bed, output)
+    # merged_bed = merge_bed(sorted_bed, output)
+    # nodup_bed = remove_duplicate(merged_bed, output)  # remove potential feature with the same coordinates on different strand
+    # final_trna_input = enrichment_of_exon_fixating_SF.intersect2input(nodup_bed, output)
     new_output = output + "Exon_analysis_%s" % exon_type + "/"
     if not os.path.isdir(new_output):
         os.mkdir(new_output)
-    enrichment_analysis(final_trna_input, new_output, exon_type, trna_launcher, name_analysis, wanted_size)
+    enrichment_of_exon_fixating_SF.enrichment_analysis(final_trna_input, new_output, exon_type, trna_launcher, name_analysis)
 
 
 def launcher():
@@ -195,9 +217,9 @@ def launcher():
     parser.add_argument('--name', dest='name',
                         help="""the name of the analysis""",
                         default="")
-    parser.add_argument('--size', dest='size',
-                        help="""size of the peaks selected""",
-                        default=20)
+    parser.add_argument('--overlap', dest='overlap',
+                        help="""The number of sequence that must overlap""",
+                        default=3)
     required_args.add_argument('--clip_bed', dest='clip_bed',
                                help="The bed file obtained from clip data",
                                required=True)
@@ -215,10 +237,10 @@ def launcher():
     if args.output[-1] != "/":
         args.output += "/"
     try:
-        args.size = int(args.size)
+        args.overlap = int(args.overlap)
     except ValueError:
-        parser.error("Error : wrong value for argument size")
-    main(args.output, args.clip_bed, args.fasterdb_bed, args.trna_launcher, args.exon_type, args.name, args.size)
+        parser.error("Wrong paramerter for argument overlap")
+    main(args.output, args.clip_bed, args.fasterdb_bed, args.trna_launcher, args.exon_type, args.name, args.overlap)
 
 
 if __name__ == "__main__":
