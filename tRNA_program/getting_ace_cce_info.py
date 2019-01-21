@@ -16,6 +16,7 @@ from list_exon import *
 from dictionnary import amino_acid2nature
 from dictionnary import codon2aminoAcid
 import sys
+import config
 
 #####################################################
 #                  Functions
@@ -26,7 +27,7 @@ def connection():
     """
     :return: an object that contains all the information you need to connect to fasterDB
     """
-    cnx = mysql.connector.connect(***REMOVED***, ***REMOVED***, ***REMOVED***, ***REMOVED***,
+    cnx = mysql.connector.connect(user=config.user, password=config.password, host=config.host, database=config.database,
                                   buffered=True)
     return cnx
 
