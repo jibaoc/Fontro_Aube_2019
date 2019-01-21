@@ -205,7 +205,12 @@ def get_mean_frequency_of_multiple_fasta(type_unit, unit, freq, iteration, outpu
     list_mean_fasta2 = []
     sizes = []
     list_count_stretch = [[] for j in range(len(stretches))]
-    ilist = []
+    ilist = [[]]
+    iunit2 = iunit.split(",")
+    iunit_type2 = iunit_type.split(",")
+    if len(iunit2) > 1:
+        ilist = [[] for i in range(len(iunit2))]
+
     filename_fasta = "CCE_" + unit + "_" + str(freq)
     for i in range(iteration):
         sys.stdout.write("\rprogress: " + str(i + 1) + " / " + str(iteration))
@@ -218,21 +223,24 @@ def get_mean_frequency_of_multiple_fasta(type_unit, unit, freq, iteration, outpu
         list_mean_fasta.append(get_mean_frequency_in_fasta_file(output + filename_fasta + ".fasta", type_unit, unit2[0]))
         list_mean_fasta2.append(get_mean_frequency_in_fasta_file(output + filename_fasta + ".fasta", type_unit, unit2[1]))
         if iunit_type is not None:
-            ilist.append(get_mean_frequency_in_fasta_file(output + filename_fasta + ".fasta", iunit_type, iunit))
-            if iunit_type == "nt":
-                value_stretch, size = stretch_evalutator.stretch_calculator(output + filename_fasta + ".fasta", True, iunit_type, iunit, output, stretches)
+            for i in range(len(iunit2)):
+                ilist[i].append(get_mean_frequency_in_fasta_file(output + filename_fasta + ".fasta", iunit_type2[i], iunit2[i]))
+            if iunit_type2[0] == "nt":
+                value_stretch, size = stretch_evalutator.stretch_calculator(output + filename_fasta + ".fasta", True, iunit_type2[0], iunit2[0], output, stretches)
                 sizes.append(size[0])
                 for k in range(len(list_count_stretch)): list_count_stretch[k].append(value_stretch[k])
     subprocess.check_call(["rm", output + filename_fasta + ".fasta"], stderr=subprocess.STDOUT)
     if iunit_type is None:
         return [list_mean_fasta, list_mean_fasta2]
     else:
-        if iunit_type == "nt":
+        if iunit_type2[0] == "nt":
             if sizes[0] != sum(sizes) / len(sizes):
                 print("The " + iteration + " fasta created did not have the same number of sequence")
-            return [list_mean_fasta, list_mean_fasta2, ilist, list_count_stretch, sizes]
+            res =  [list_mean_fasta, list_mean_fasta2] + ilist + [list_count_stretch, sizes]
+            return res
         else:
-            return [list_mean_fasta, list_mean_fasta2, ilist, None, None]
+            res = [list_mean_fasta, list_mean_fasta2] + ilist + [None, None]
+            return res
 
 
 def get_relative_freq_values(list_high, list_low):
@@ -278,12 +286,13 @@ def write_full_tsv_file(unit_type, unit, freq_high, freq_low, list_high_freq, li
     :param iunit: the unit of ``itype_unit`` for which we want to calculate the mean frequency in fasta files
     """
     unit2 = unit.split(",")
+    iunit2 = iunit.split(",")
     fname = "mutated"
     freq_high2 = freq_high.split(",")
     freq_low2 = freq_low.split(",")
     relative_freq = [get_relative_freq_values(list_high_freq[i], list_low_freq[i]) for i in range(len(list_high_freq))]
     mean_rel_freq = [np.mean(relative_freq[i]) for i in range(len(relative_freq))]
-    sd_rel_freq = [np.std(relative_freq[i], ddof=1)for i in range(len(relative_freq))]
+    std_rel_freq = [np.std(relative_freq[i], ddof=1)for i in range(len(relative_freq))]
 
     mean_high = [np.mean(list_high_freq[i]) for i in range(len(list_high_freq))]
     std_high = [np.std(list_high_freq[i], ddof=1) for i in range(len(list_high_freq))]
@@ -294,9 +303,7 @@ def write_full_tsv_file(unit_type, unit, freq_high, freq_low, list_high_freq, li
 
 
     # T test between the frequency of the same feature in high and low fastas
-    pval1 = stretch_evalutator.r_ttest(list_high_freq[0], list_low_freq[0])
-    pval2 = stretch_evalutator.r_ttest(list_high_freq[1], list_low_freq[1])
-    pval3 = stretch_evalutator.r_ttest(list_high_freq[2], list_low_freq[2])
+    pval = [stretch_evalutator.r_ttest(list_high_freq[i], list_low_freq[i]) for i in range(len(list_high_freq))]
 
     with open(output + iunit_type + "_" + iunit + "_frequency_comparison_between_" + str(iteration) + "_" + fname + "_fasta_file-" + str(unit) + "_high:" + str(freq_high) + "_low:" + str(freq_low) + ".tsv", "w") as outfile:
         outfile.write("frequency_fasta" + fname + "_" + str(unit2[0]) + ":" + str(freq_high2[0]) + "\t")
@@ -304,23 +311,25 @@ def write_full_tsv_file(unit_type, unit, freq_high, freq_low, list_high_freq, li
         outfile.write("relative_frequency\t")
         outfile.write("frequency_fasta" + fname + "_" + str(unit2[1]) + ":" + str(freq_high2[1]) + "\t")
         outfile.write("frequency_fasta" + fname + "_" + str(unit2[1]) + ":" + str(freq_low2[1]) + "\t")
-        outfile.write("relative_frequency\t")
-        outfile.write("frequency_fasta" + fname + "_" + str(iunit) + "_in_"  + str(unit) + "_" + str(freq_high) + "\t")
-        outfile.write("frequency_fasta" + fname + "_" + str(iunit) + "_in_" + str(unit) + "_" + str(freq_low) + "\t")
-        outfile.write("relative_frequency\n")
+        outfile.write("relative_frequency")
+        for i in range(len(iunit2)):
+            outfile.write("\tfrequency_fasta" + fname + "_" + str(iunit2[i]) + "_in_"  + str(unit) + "_" + str(freq_high))
+            outfile.write("\tfrequency_fasta" + fname + "_" + str(iunit2[i]) + "_in_" + str(unit) + "_" + str(freq_low))
+            outfile.write("\trelative_frequency")
+        outfile.write("\n")
         for i in range(len(list_high_freq[0])):
-            outfile.write(str(list_high_freq[0][i]) + "\t" + str(list_low_freq[0][i]) + "\t" + str(relative_freq[0][i]) + "\t")
-            outfile.write(str(list_high_freq[1][i]) + "\t" + str(list_low_freq[1][i]) + "\t" + str(relative_freq[1][i]) + "\t")
-            outfile.write(str(list_high_freq[2][i]) + "\t" + str(list_low_freq[2][i]) + "\t" + str(relative_freq[2][i]) + "\n")
-        outfile.write(str(mean_high[0]) + "\t" + str(mean_low[0]) + "\t" + str(mean_rel_freq[0]) + "\t" +
-                      str(mean_high[1]) + "\t" + str(mean_low[1]) + "\t" + str(mean_rel_freq[1]) + "\t" +
-                      str(mean_high[2]) + "\t" + str(mean_low[2]) + "\t" + str(mean_rel_freq[2]) + "\t" +"mean\n")
-        outfile.write(str(std_high[0]) + "\t" + str(std_low[0]) + "\t" + str(sd_rel_freq[0]) + "\t" +
-                      str(std_high[1]) + "\t" + str(std_low[1]) + "\t" + str(sd_rel_freq[1]) + "\t" +
-                      str(std_high[2]) + "\t" + str(std_low[2]) + "\t" + str(sd_rel_freq[2]) + "\t" + "std\n")
-        outfile.write(str(pval1) + "\t \t \t " +
-                      str(pval2) + "\t \t \t " +
-                      str(pval3) + "\t \t \t " + "pvalue")
+            for j in range(len(list_high_freq)):
+                outfile.write(str(list_high_freq[j][i]) + "\t" + str(list_low_freq[j][i]) + "\t" + str(relative_freq[j][i]) + "\t")
+            outfile.write("\n")
+        for i in range(len(mean_high)):
+            outfile.write(str(mean_high[i]) + "\t" + str(mean_low[i]) + "\t" + str(mean_rel_freq[i]) + "\t")
+        outfile.write("mean\n")
+        for i in range(len(std_high)):
+            outfile.write(str(std_high[i]) + "\t" + str(std_low[i]) + "\t" + str(std_rel_freq[i]) + "\t")
+        outfile.write("std\n")
+        for i in range(len(pval)):
+            outfile.write(str(pval[i]) + "\t \t \t ")
+        outfile.write("pvalue\n")
 
 
 def write_tsv_file(unit_type, unit, freq_high, freq_low, list_high_freq, list_low_freq, iteration, output):
@@ -504,7 +513,7 @@ def main(type_unit, unit, freq_high, freq_low, iteration, output, iscub, itype_u
                                                               itype_unit, iunit)
         list_low_freq = get_mean_frequency_of_multiple_fasta(type_unit, unit, freq_low, iteration, output,
                                                              itype_unit, iunit)
-        if itype_unit == "nt":
+        if itype_unit == "nt" or itype_unit.split(",")[0] == "nt":
             strech_count_high= list_high_freq[-2]
             strech_count_low = list_low_freq[-2]
             strech_rel_val, strech_rel_frac = relative_frequency_stretch(strech_count_high, strech_count_low)
@@ -516,7 +525,9 @@ def main(type_unit, unit, freq_high, freq_low, iteration, output, iscub, itype_u
         list_low_freq = list_low_freq[:-2]
         write_full_tsv_file(type_unit, unit, freq_high, freq_low, list_high_freq, list_low_freq, iteration, output, itype_unit, iunit)
 
-        if itype_unit == "nt":
+        if itype_unit == "nt" or itype_unit.split(",")[0] == "nt":
+            itype_unit = itype_unit.split(",")[0]
+            iunit = iunit.split(",")[0]
             merged_list, name_list = fusion_stretch_count_list(strech_count_high, strech_count_low, strech_rel_val)
             filename_high = str(unit) + "_" + str(freq_high)
             filename_low = str(unit) + "_" + str(freq_low)
