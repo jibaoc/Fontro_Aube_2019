@@ -69,7 +69,7 @@ def get_interest_frequency(excel_file, dic):
 
     for row in df.itertuples():
         if row.amino_acid in aa_i:
-            val = (row.frequencies_of_the_interest_set - row.average_frequencies_of_the_10000_sets) / row.average_frequencies_of_the_10000_sets * 100
+            val = float(row.frequencies_of_the_interest_set) * 100
             if row.amino_acid not in dic.keys():
                 dic[row.amino_acid] = [val]
             else:
@@ -88,7 +88,7 @@ def get_interest_frequency(excel_file, dic):
     dic_test = {i:0 for i in dnt_i + aa_i}
     for row in df.itertuples():
         if row.dnt_info in dnt_i:
-            val = (float(row.frequencies_of_the_interest_set) - float(row.average_frequencies_of_the_10000_sets)) / float(row.average_frequencies_of_the_10000_sets) * 100
+            val = float(row.frequencies_of_the_interest_set) * 100
             if dic_test[row.dnt_info] == 0:
                 if row.dnt_info not in dic.keys():
                     dic[row.dnt_info] = [val]
@@ -105,6 +105,8 @@ def pvalue_getter(list1, list2):
     :param list2: list of float
     :return: a p value
     """
+    print(list1)
+    print(list2)
     wilcox = robj.r(
         """
         function(list1, list2){
@@ -124,7 +126,7 @@ def main():
     for myfile in listsf2:
         dic_2 = get_interest_frequency(myfile, dic_2)
 
-    with open(output + "Fig2H.stat.txt", "w") as outfile:
+    with open(output + "Fig5E.stat.txt", "w") as outfile:
         outfile.write("Comparaison des SF " + sf_i[0] + " et " + sf_i[1] + "\n")
         outfile.write("order of file for " + sf_i[0] + str(listsf1) + "\n")
         outfile.write("order of file for " + sf_i[1] + str(listsf2) + "\n")
