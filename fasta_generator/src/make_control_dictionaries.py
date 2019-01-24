@@ -6,6 +6,7 @@ hexanucleotides, codons, amino acids in ACE/CCE/ALL exons of fasterDB"""
 from dicitonary import *
 import mysql.connector
 import os
+import config
 
 codon2aminoAcid = dict(TTT="F", TTC="F", TTA="L", TTG="L", CTT="L", CTC="L", CTA="L", CTG="L", ATT="I", ATC="I",
                        ATA="I", ATG="M", GTT="V", GTC="V", GTA="V", GTG="V", TCT="S", TCC="S", TCA="S", TCG="S",
@@ -24,7 +25,7 @@ def connection():
     """
     :return: an object that contains all the information you need to connect to fasterDB
     """
-    cnx = mysql.connector.connect(***REMOVED***, ***REMOVED***, ***REMOVED***, ***REMOVED***,
+    cnx = mysql.connector.connect(user=config.user, password=config.password, host=config.host, database=config.database,
                                   buffered=True)
     return cnx
 
