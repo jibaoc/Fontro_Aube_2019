@@ -2,3 +2,4 @@
 src/*.pyc
 src/__pycache__/
 src/control_dir/*
+src/config.py
