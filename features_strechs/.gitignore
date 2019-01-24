@@ -2,4 +2,5 @@
 src/*.pyc
 src/__pycache__/
 src/control_dir/*
+!src/control_dir/CCE*.py
 src/config.py
