@@ -10,8 +10,6 @@ It will allow to decide what type of low complexity sequence to use to better di
 # Set the environment :
 from Bio import SeqIO
 import pandas as pd
-from math import sqrt
-from ncephes import cprob
 from matplotlib import pyplot as plt
 import os
 import sys
@@ -215,30 +213,6 @@ def get_stretch(list_of_sequence, unit, unit_type, stretch_len, stretch_content)
         counter += st_dic[key]
     st_dic["all"] = counter
     return st_dic
-
-
-def frequency_test(obs1, tot1, obs2, tot2):
-    """
-
-    :param obs1: (int) the count number of an amino acid X in the set of protein 1.
-    :param tot1: (int) the total number of amino acids in the set of protein 1.
-    :param obs2: (int) the count number of an amino acid X in the set of protein 2.
-    :param tot2: (int) the total number of amino acids in the set of protein 2.
-    :return: proportion test p-value
-    """
-    if obs1 == 0 and obs2 == 0:
-        return float('nan')
-    mean1 = float(obs1) / tot1
-    mean2 = float(obs2) / tot2
-
-    var1 = float(obs1) * (1 - mean1) * (1 - mean1) + (tot1 - obs1) * mean1 * mean1
-    var2 = float(obs2) * (1 - mean2) * (1 - mean2) + (tot2 - obs2) * mean2 * mean2
-
-    df = tot1 + tot2 - 2
-    svar = (var1 + var2) / df
-    t = (mean1-mean2) / sqrt(svar*(1.0/tot1 + 1.0/tot2))
-
-    return cprob.incbet(0.5*df, 0.5, df/(df+t*t))
 
 
 def get_more(dic, num):
