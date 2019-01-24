@@ -22,13 +22,15 @@ folder/
 create in a given output_folder all the sub-folders in your given folder (i.e.
 folder1, folder2..., foldern here) and create in those sub_folders the propensity charts
 for the 2 sets of peptides (contained in query_result_up.xlsx, query_result_down.xlsx)
-given in the sequence sheet of query_result_up/down.xlsx
+given in the sequence sheet of query_result_up/down.xlsx.
+
+The files ``query_result_up.xlsx`` or ``query_result_down.xlsx`` are produced by the tRNA program
 
 This program is based on the program `propensity_chart_maker.py`
 
 ## `propensity_chart_maker.py` program
 
-From 2 query results files produced by the  tRNA program produce figures
+From 2 query results files produced by the randomization-enrichment produce figures
 of different features for those 2 sets of peptides within the files
 
 # Prerequisites
