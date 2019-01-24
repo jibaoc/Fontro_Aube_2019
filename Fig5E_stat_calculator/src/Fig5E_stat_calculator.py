@@ -18,35 +18,34 @@ dnt_i = ["CA", "AC", "CT", "TC"]
 aa_i = ["H", "Q", "T", "S", "L"]
 
 # folder interest
-folder=os.path.realpath(os.path.dirname(__file__)).replace("src", "data/")
+folder = os.path.realpath(os.path.dirname(__file__)).replace("src", "data/")
 
 # SF of interest
 sf_i = ["PTBP1", "hnRNPL"]
 
 # output
-output=os.path.realpath(os.path.dirname(__file__)).replace("src", "result/")
+output = os.path.realpath(os.path.dirname(__file__)).replace("src", "result/")
+
 
 # function
-
-def file_finder(folder, sf_i):
+def file_finder(my_folder, sf_interest):
     """
-    :param fasta: the folder containing enrichment file of interest
-    :param sf_i: the list containing the 2 sf of interest
+    :param my_folder: the folder containing enrichment file of interest
+    :param sf_interest: the list containing the 2 sf of interest
     :return: 2 lists, one containing the file related to the first splicing factor of interest and the second \
     the files related to the second splicing factor of interest
     """
-    a = subprocess.check_output(["find", folder, "-name", "enrichment_report.xlsx", "-type", "f"])
+    a = subprocess.check_output(["find", my_folder, "-name", "enrichment_report.xlsx", "-type", "f"])
     a = a.decode("ascii").split("\n")[:-1]
 
     listsf1 = []
-    listsf2= []
+    listsf2 = []
     for mfile in a:
-        if sf_i[0] in mfile:
+        if sf_interest[0] in mfile:
             listsf1.append(mfile)
         else:
             listsf2.append(mfile)
     return listsf1, listsf2
-
 
 
 def get_interest_frequency(excel_file, dic):
@@ -86,7 +85,7 @@ def get_interest_frequency(excel_file, dic):
         print("exiting...")
         exit(1)
 
-    dic_test = {i:0 for i in dnt_i + aa_i}
+    dic_test = {i: 0 for i in dnt_i + aa_i}
     for row in df.itertuples():
         if row.dnt_info in dnt_i:
             val = float(row.frequencies_of_the_interest_set) * 100
@@ -114,7 +113,7 @@ def pvalue_getter(list1, list2):
             return(wilcox.test(list1,list2)$p.value)
         }
         """)
-    return(float(wilcox(v.FloatVector(list1), v.FloatVector(list2))[0]))
+    return float(wilcox(v.FloatVector(list1), v.FloatVector(list2))[0])
 
 
 def main():
@@ -133,8 +132,9 @@ def main():
         outfile.write("order of file for " + sf_i[1] + str(listsf2) + "\n")
         for key in dic_1.keys():
             pval = pvalue_getter(dic_1[key], dic_2[key])
-            outfile.write(str(key) + " - Valeurs " + str(sf_i[0])  + " : "  + str(dic_1[key]) + "Valeurs " + str(sf_i[1])  + " : " + str(dic_2[key]) + "  - pval = " + str(pval) + "\n")
+            outfile.write(str(key) + " - Valeurs " + str(sf_i[0]) + " : " + str(dic_1[key]) + "Valeurs " +
+                          str(sf_i[1]) + " : " + str(dic_2[key]) + "  - pval = " + str(pval) + "\n")
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
