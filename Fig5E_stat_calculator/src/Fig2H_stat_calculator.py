@@ -8,6 +8,7 @@ import rpy2.robjects as robj
 import rpy2.robjects.vectors as v
 import pandas as pd
 import subprocess
+import os
 
 # Global variables
 
@@ -17,13 +18,13 @@ dnt_i = ["CA", "AC", "CT", "TC"]
 aa_i = ["H", "Q", "T", "S", "L"]
 
 # folder interest
-folder="/media/nicolas/DD_2/Projects/Fig2H_stat_calculator/data"
+folder=os.path.realpath(os.path.dirname(__file__)).replace("src", "data/")
 
 # SF of interest
 sf_i = ["PTBP1", "hnRNPL"]
 
 # output
-output="/media/nicolas/DD_2/Projects/Fig2H_stat_calculator/result/"
+output=os.path.realpath(os.path.dirname(__file__)).replace("src", "result/")
 
 # function
 
