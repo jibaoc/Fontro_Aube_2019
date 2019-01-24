@@ -36,4 +36,4 @@ The script works with ``python3`` and uses the following modules:
 python3 src/Fig6B_stats_calculator.py
 ```
 
-Thos will produce a file containing the p-values of the figure 6B in the `result` folder.
+This will produce a file containing the p-values of the figure 6B in the `result` folder.
