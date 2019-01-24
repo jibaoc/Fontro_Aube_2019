@@ -58,5 +58,5 @@ python2 main_project.py --up input_up.txt --down input_down.txt --enrichment Fal
 you can launch the following command:
 
 ```sh
-bash src/command.
+bash src/command.sh
 ```
