@@ -178,7 +178,7 @@ def main():
             if shapiro_test(dic_freq[key][0]) < 0.05 or shapiro_test(dic_freq[key][1]) < 0.05:
                 test = "wilcoxon"
 
-    with open(output + "stat_Fig4B.csv", "w") as outfile:
+    with open(output + "stat_Fig6B.csv", "w") as outfile:
         outfile.write("Up vs Down comparison : test used : " + str(test) + "\n")
         outfile.write("Feature\tSF_Union\tPvalue\n")
         for feature in ft_i:
