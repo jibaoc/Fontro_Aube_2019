@@ -36,6 +36,7 @@ import argparse
 import os
 import sys
 import stretch_evalutator
+import config
 
 
 #stretches = [[4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12]]
@@ -75,7 +76,7 @@ def fasta_generator_dependant_feature(feature, freq, output):
     """
 
     cmd = ["python2"]
-    cmd += ["/home/nicolas/PycharmProjects/fasta_generator/src/fasta_generator_2features_real_exons_.py"]
+    cmd += [config.fg2fre]
     cmd += ["--output", output]
     cmd += ["--feature1", feature[0]]
     cmd += ["--feature2", feature[1]]

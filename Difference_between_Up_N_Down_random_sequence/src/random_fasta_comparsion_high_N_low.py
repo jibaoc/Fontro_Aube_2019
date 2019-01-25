@@ -36,6 +36,8 @@ import argparse
 import os
 import sys
 import stretch_evalutator
+import config
+
 
 feature_dic = {
     "Very-small": ["A", "C", "G", "S"],
@@ -77,9 +79,9 @@ def fasta_generation_nt_dnt(nt_dnt, freq, filename, output, iscub):
     """
     cmd = ["python"]
     if not iscub:
-        cmd += ["/home/nicolas/PycharmProjects/fasta_generator/src/fasta_generator_dinucleotide_from_real_exon.py"]
+        cmd += [config.fgdfre]
     else:
-        cmd += ["/home/nicolas/PycharmProjects/fasta_generator/src/fasta_generator.py"]
+        cmd += [config.fg]
     cmd += ["--output", output]
     cmd += ["--nt_dnt", nt_dnt]
     cmd += ["--freq", str(freq)]
@@ -104,9 +106,9 @@ def fasta_generation_feature(feature, freq, output, iscub):
     """
     cmd = ["python"]
     if not iscub:
-        cmd += ["/home/nicolas/PycharmProjects/fasta_generator/src/fasta_generator_from_real_exons.py"]
+        cmd += [config.fgfre]
     else:
-        cmd += ["/home/nicolas/PycharmProjects/fasta_generator/src/fasta_reverse_generator.py"]
+        cmd += [config.frg]
     cmd += ["--output", output]
     cmd += ["--ctrl", "CCE"]
     cmd += ["--feature", feature]
@@ -126,7 +128,7 @@ def fasta_generator_dependant_feature(feature, freq, output):
     """
 
     cmd = ["python3"]
-    cmd += ["/home/nicolas/PycharmProjects/fasta_generator/src/fasta_generator_2features_real_exons_.py"]
+    cmd += [config.fg2fre]
     cmd += ["--output", output]
     cmd += ["--feature1", feature[0]]
     cmd += ["--feature2", feature[1]]
